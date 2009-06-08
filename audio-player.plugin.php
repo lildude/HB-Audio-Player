@@ -78,12 +78,11 @@ class HBAudioPlayer extends Plugin
                         for all your audio needs. You can customise the player\'s
                         colour scheme to match your blog theme, have it automatically
                         show track information from the encoded ID3 tags and more.</p>
-                        
+                        <br />
                         <strong>Basic Usage:</strong><br />
-
-                        <p>The default mechanism for inserting a player in a post is to use the [audio] syntax:</p>
-
-                        <code>[audio:http://www.yourdomain.com/path/to/your_mp3_file.mp3]</code>
+                        <p>The default mechanism for inserting a player in a post is to use the [audio] syntax:<br />
+                        
+                        <code>[audio:http://www.yourdomain.com/path/to/your_mp3_file.mp3]</code></p>
 
                         <p>This will insert a player and load your_mp3_file.mp3 into it.</p>
 
@@ -92,14 +91,14 @@ class HBAudioPlayer extends Plugin
                         <p>You can configure HB Audio Player with a default audio files
                         location so you don’t have to specify the full URL everytime.
                         You can set this location via the Settings panel. Once set, you
-                        can use this syntax:</p>
+                        can use this syntax:<br />
 
-                        <code>[audio:your_mp3_file.mp3]</code>
+                        <code>[audio:your_mp3_file.mp3]</code></p>
 
                         <p>Audio Player will automatically look for the file in your default
                         audio files location. This can be very handy if you decide to move
                         all your audio files to a different location in the future.</p>
-
+                        <br />
                         <strong>Advanced Usage</strong><br />
 
                         <p>By default, the player gets the track information from the ID3 tags
@@ -109,15 +108,15 @@ class HBAudioPlayer extends Plugin
                         of the Flash player, but it can be over-ridden.</p>
 
                         <p>You can however pass the artice and title information when inserting the
-                        player using the following syntax:</p>
+                        player using the following syntax:<br />
 
-                        <code>[audio:your_mp3_file.mp3|titles=The title|artists=The artist]</code>
+                        <code>[audio:your_mp3_file.mp3|titles=The title|artists=The artist]</code></p>
 
-                        <p>For multiple files:</p>
+                        <p>For multiple files:<br />
 
-                        <code>[audio:your_mp3_file_1.mp3,your_mp3_file_2.mp3|titles=The title 1,The title 2|artists=The artist 1,The artist 2]</code>
-                       
-                        <p>Configuring it now.</p>
+                        <code>[audio:mp3_file_1.mp3,mp3_file_2.mp3|titles=Title 1,Title 2|artists=Artist 1,Artist 2]</code></p>
+                        <br />
+                        <p><a href="'.URL::get( 'admin', array( 'page' => 'plugins', 'configure' => $this->plugin_id(), 'configaction' => 'Configure' ) ) . '#plugin_options">Configure</a> HB Audio Player now.</p>
                        ');
     }
     /**
@@ -131,7 +130,27 @@ class HBAudioPlayer extends Plugin
     {
         if( Plugins::id_from_file( $file ) == Plugins::id_from_file( __FILE__ ) ) {
             $defOptions = array(
-
+                'default_path'  => '',
+                'width'         => 200,
+                'colourScheme'  => array (
+                                    'bg'                => 'E5E5E5',
+                                    'text'              => '333333',
+                                    'leftbg'            => 'CCCCCC',
+                                    'lefticon'          => '333333',
+                                    'volslider'         => '666666',
+                                    'voltrack'          => 'FFFFFF',
+                                    'rightbg'           => 'B4B4B4',
+                                    'rightbghover'      => '999999',
+                                    'righticon'         => '333333',
+                                    'righticonhover'    => 'FFFFFF',
+                                    'track'             => 'FFFFFF',
+                                    'loader'            => '009900',
+                                    'border'            => 'CCCCCC',
+                                    'tracker'           => 'DDDDDD',
+                                    'skip'              => '666666',
+                                    'pagebg'            => 'FFFFFF',
+                                    'transparentpagebg' => TRUE
+                                ),
                         );
 
             $this->options = Options::get( self::OPTNAME );
@@ -191,7 +210,6 @@ class HBAudioPlayer extends Plugin
         $this->add_template( 'hbap_select', dirname( $this->get_file() ) . '/lib/formcontrols/optionscontrol_select.php' );
         $this->add_template( 'hbap_radio', dirname( $this->get_file() ) . '/lib/formcontrols/optionscontrol_radio.php' );
 
-
         if ( $plugin_id == $this->plugin_id() ) {
             switch ( $action ) {
                 case _t( 'Configure' ):
@@ -199,6 +217,64 @@ class HBAudioPlayer extends Plugin
                     $durations = array( 1 => 'Disabled', 100 => 100, 200 => 200, 300 => 300, 400 => 400, 500 => 500, 600 => 600, 700 => 700, 800 => 800, 900 => 900, 1000 => 1000 );
 
                     $ui = new FormUI( strtolower( get_class( $this ) ) );
+                    // TODO: Find a way to easily list silo locations
+                    $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
+                        $ui->genfs->append( 'text', 'default_path', 'null:null', _t( 'Default Audio Path:' ), 'hbap_text' );
+                            $ui->genfs->default_path->value = $this->options['default_path'];
+
+                    $ui->append( 'fieldset', 'appfs', _t( 'Appearance' ) );
+                        $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width' ), 'hbap_text' );
+                            $ui->appfs->width->value = $this->options['width'];
+                            $ui->appfs->width->helptext = _t( 'You can enter a value in pixels (e.g. 200) or as a percentage (e.g. 100%)' );
+                        foreach( $this->options['colourScheme'] as $opt => $value ) {
+                            $ui->appfs->append( 'hidden', "cs_".$opt, 'null:null' );
+                                $optn = "cs_$opt";
+                                $ui->appfs->$optn->value = $value;
+                        }
+                        $ui->appfs->append( 'select', 'fieldsel', 'null:null', _t( 'Colour Scheme Selector' ) );
+                            $ui->appfs->fieldsel->template = 'hbap_select';
+                            $ui->appfs->fieldsel->options = array (
+                                                    'bg'                => _t( 'Background' ),
+                                                    'leftbg'            => _t( 'Left Background' ),
+                                                    'lefticon'          => _t( 'Left Icon' ),
+                                                    'volslider'         => _t( 'Volume Control Slider' ),
+                                                    'voltrack'          => _t( 'Volume Control Track' ),
+                                                    'rightbg'           => _t( 'Right Background' ),
+                                                    'rightbghover'      => _t( 'Right Background (hover)' ),
+                                                    'righticon'         => _t( 'Right Icon' ),
+                                                    'righticonhover'    => _t( 'Right Icon (hover)' ),
+                                                    'text'              => _t( 'Text' ),
+                                                    'track'             => _t( 'Progress Bar Track' ),
+                                                    'tracker'           => _t( 'Progress Bar' ),
+                                                    'loader'            => _t( 'Loading Bar' ),
+                                                    'border'            => _t( 'Progress Bar Border' ),
+                                                    'skip'              => _t( 'Next/Previous Buttons' )
+                                                    );
+
+/*
+<option value="bg" selected="selected"><?php _e('Background', $this->textDomain) ?></option>
+				  <option value="leftbg"><?php _e('Left background', $this->textDomain) ?></option>
+				  <option value="lefticon"><?php _e('Left icon', $this->textDomain) ?></option>
+				  <option value="voltrack"><?php _e('Volume control track', $this->textDomain) ?></option>
+				  <option value="volslider"><?php _e('Volume control slider', $this->textDomain) ?></option>
+				  <option value="rightbg"><?php _e('Right background', $this->textDomain) ?></option>
+				  <option value="rightbghover"><?php _e('Right background (hover)', $this->textDomain) ?></option>
+				  <option value="righticon"><?php _e('Right icon', $this->textDomain) ?></option>
+				  <option value="righticonhover"><?php _e('Right icon (hover)', $this->textDomain) ?></option>
+				  <option value="text"><?php _e('Text', $this->textDomain) ?></option>
+				  <option value="tracker"><?php _e('Progress bar', $this->textDomain) ?></option>
+				  <option value="track"><?php _e('Progress bar track', $this->textDomain) ?></option>
+				  <option value="border"><?php _e('Progress bar border', $this->textDomain) ?></option>
+				  <option value="loader"><?php _e('Loading bar', $this->textDomain) ?></option>
+				  <option value="skip"><?php _e('Next/Previous buttons', $this->textDomain) ?></option>
+				</select>
+  */
+                    $ui->append( 'fieldset', 'feedfs', _t( 'Feed' ) );
+
+
+                    $ui->append( 'fieldset', 'advfs', _t( 'Advanced' ) );
+
+                    /*
                     $ui->append( 'checkbox', 'autoload', 'null:null', _t( 'Autoload?' ), 'slim_checkbox' );
                         $ui->autoload->value = $this->options['autoload'];
                         $ui->autoload->helptext = _t( 'Automatically activate Slimbox on all links pointing to ".jpg" or ".png" or ".gif". All image links contained in the same block or paragraph (having the same parent element) will automatically be grouped together in a gallery. If this isn\'t activated you will need to manually add \'rel="lightbox"\' for individual images or \'rel="lightbox-imagesetname"\' for groups on all links you wish to use Slimbox.' );
@@ -340,7 +416,6 @@ Default next values are [39, 78] which means Right arrow (39) and "n" (78).<br /
     public function action_admin_footer( $theme )
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
-            Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/keypress.js', 'jquery.keypress', 'jquery' );
             Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/farbtastic.js', 'jquery.farbtastic', 'jquery' );
             Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/load_farbtastic.js', 'jquery.load.farbtastic', 'jquery.farbtastic' );
 
@@ -365,127 +440,6 @@ Default next values are [39, 78] which means Right arrow (39) and "n" (78).<br /
     public function theme_header( $theme )
     {
         $this->options = Options::get( self::OPTNAME );
-        Stack::add( 'template_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/css/slimbox2.css', 'screen' ), 'slimbox2' );
-        Stack::add( 'template_header_javascript', Site::get_url( 'scripts' ) . '/jquery.js', 'jquery' );
-        Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/slimbox2.js', 'jquery.slimbox2', 'jquery' );
-        Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/jquery.easing.1.3.packed.js', 'jquery.easing', 'jquery' );
-
-        if ( $this->options['autoload'] ) {
-            $autoload = "
-                $('a[href]').filter(function() {
-                    return /\.(jpg|png|gif)$/i.test(this.href);
-                }).slimbox(options,
-                    function(el) {  /* LinkMapper */
-                        cap = (el.title || el.alt || el.firstChild.title || el.firstChild.title);
-                        return [el.href, cap.replace(/\\n/, '<br />')];     /* Replaced \n with a break when showing slimbox */
-                    },
-                    function(el) {
-                        return (this == el) || (this.parentNode && (this.parentNode == el.parentNode));
-                    });
-            ";
-        } else {
-            $autoload = "
-                $(\"a[rel^='lightbox']\").slimbox(options, 
-                    function(el) {
-                        cap = (el.title || el.alt || el.firstChild.title || el.firstChild.title);
-                        return [el.href, cap.replace(/\\n/, '<br />')];     /* Replaced \n with a break when showing slimbox */
-                    },
-                    function(el) {
-                        return (this == el) || ((this.rel.length > 8) && (this.rel == el.rel));
-                    });
-            ";
-        }
-
-        if ( $this->options['picasa'] ) {
-            $autoload .= "
-                $(\"a[href^='http://picasaweb.google.'] > img:first-child[src]\").parent().slimbox(options, function(el) {
-                    return [el.firstChild.src.replace(/\/s\d+(?:\-c)?\/([^\/]+)$/, '/s640/$2'),
-                            (el.title || el.alt || el.firstChild.title || el.firstChild.alt) + '<br /><a href=\'' + el.href + '\'>Picasa Web Albums page<\/a>'];
-                });
-            ";
-        }
-
-        // Shows medium image by default.
-        if ( $this->options['flickr'] ) {
-            $autoload .= "
-                /* $(\"a[href^='http://www.flickr.com/photos/'] > img:first-child[src]\").parent().slimbox(options, function(el) { */
-                $(\"a:regex(href, http://(\w+\.)?flickr.com/photos/) > img:first-child[src]\").parent().slimbox(options, function(el) {
-                    return [el.firstChild.src.replace(/_[mts]\.(\w+)$/, '.$1'),
-                        (el.title || el.alt || el.firstChild.title || el.firstChild.alt) + '<br /><a href=\'' + el.href + '\'>Flickr page<\/a>'];
-                });
-            ";
-        }
-        // Shows large image by default.
-        if ( $this->options['smugmug'] ) {
-            $autoload .= "
-                $(\"a:regex(href, http://(.*).smugmug.com/gallery/) > img:first-child[src]\").parent().slimbox(options, function(el) {
-                        return [el.firstChild.src.replace(/-[LMTS]\.(\w+)$/, '-L.$1'),
-                                (el.title || el.alt || el.firstChild.title || el.firstChild.alt) + '<br /><a href=\'' + el.href + '\'>SmugMug page<\/a>'];
-                });
-            ";
-        }
-
-        Stack::add( 'template_header_javascript', "
-/* CNS: Extending jQuery selectors for use with the regex needed by the Flickr
- * and SmugMug features.
- *
- * Src: http://james.padolsey.com/javascript/regex-selector-for-jquery/
- */
-jQuery.expr[':'].regex = function(elem, index, match) {
-    var matchParams = match[3].split(','),
-        validLabels = /^(data|css):/,
-        attr = {
-            method: matchParams[0].match(validLabels) ?
-                        matchParams[0].split(':')[0] : 'attr',
-            property: matchParams.shift().replace(validLabels,'')
-        },
-        regexFlags = 'ig',
-        regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
-    return regex.test(jQuery(elem)[attr.method](attr.property));
-}
-
-jQuery(function($) {
-    var options = {
-        loop: ".(($this->options['loop']) ? 1 : 0).",
-        overlayOpacity: ".$this->options['overlay_opacity'].",
-        overlayFadeDuration: ".$this->options['overlay_fade_duration'].",
-        resizeDuration: ".$this->options['resize_duration'].",
-        resizeEasing: \"".$this->options['resize_easing']."\",
-        initialWidth: ".$this->options['initial_width'].",
-        initialHeight: ".$this->options['initial_height'].",
-        imageFadeDuration: ".$this->options['image_fade_duration'].",
-        captionAnimationDuration: ".$this->options['caption_animation_duration'].",
-        counterText: \"".$this->options['counter_text']."\",
-        closeKeys: [".$this->options['close_keys']."],
-        previousKeys: [".$this->options['previous_keys']."],
-        nextKeys: [".$this->options['next_keys']."]
-    }
-    $('#lbOverlay').css('background-color','".$this->options['overlay_color']."');
-/* TODO: Alternate images */
-    $('#lbPrevLink').hover(
-            function () {
-                    $(this).css('background-image','url(\"".URL::get_from_filesystem( __FILE__ ) . '/lib/images/photonav/prev.png'."\")');
-                    $(this).css('background-position', '0 0');
-            },
-            function () {
-                    $(this).css('background-image','');
-            }
-    );
-    $('#lbNextLink').hover(
-            function () {
-                    $(this).css('background-image','url(\"".URL::get_from_filesystem( __FILE__ ) . '/lib/images/photonav/next.png'."\")');
-                    $(this).css('background-position', '100% 0');
-            },
-            function () {
-                    $(this).css('background-image','');
-            }
-    );
-
-    /* $('#lbCloseLink').css('background-image', 'url(\"".URL::get_from_filesystem( __FILE__ ) . '/lib/images/photonav/close.png'."\")'); */
-
-    ".$autoload."
-});",
-    'slimbox2.init', 'jquery.slimbox2');
     }
 }
 ?>
