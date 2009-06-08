@@ -1,0 +1,36 @@
+= COPYRIGHT NOTICES =
+This product includes code and libraries developed by third parties, which are
+governed by different licenses.  These components, and their licenses, are listed
+below.
+
+
+= HB Audio Player Plugin - http://www.lildude.co.uk/projects/hb-audio-player =
+Copyright (c) 2009 Colin Seymour and is released under the Apache Software License 2.0:
+http://www.apache.org/licenses/LICENSE-2.0
+
+
+= Audio player - http://wpaudioplayer.com/ =
+Copyright (c) 2008 Martin Laine and is released under the MIT License:
+http://www.opensource.org/licenses/mit-license.php
+
+
+= SWFObject - http://blog.deconcept.com/swfobject/ =
+SWFObject is (c) 2006 Geoff Stearns and is released under the MIT License:
+http://www.opensource.org/licenses/mit-license.php
+
+
+= Farbtastic - http://acko.net/dev/farbtastic =
+Copyright (c) 2007 Steve Wittens and is released under the GNU General Public License v3:
+http://www.gnu.org/copyleft/gpl.html
+
+
+This software is provided by the copyright holders and contributors “as is” and
+any express or implied warranties, including, but not limited to, the implied
+warranties of merchantability and fitness for a particular purpose are disclaimed.
+In no event shall the copyright owner or contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages (including,
+but not limited to, procurement of substitute goods or services; loss of use,
+data, or profits; or business interruption) however caused and on any theory of
+liability, whether in contract, strict liability, or tort (including negligence
+or otherwise) arising in any way out of the use of this software, even if advised
+of the possibility of such damage.
