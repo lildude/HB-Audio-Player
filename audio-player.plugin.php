@@ -39,6 +39,7 @@ class HBAudioPlayer extends Plugin
      *
      * @access public
      * @return void
+     * @todo Remove this if running on Habari r3624 or later
      */
     public function info()
     {
@@ -151,6 +152,11 @@ class HBAudioPlayer extends Plugin
                                     'pagebg'            => 'FFFFFF',
                                     'transparentpagebg' => TRUE
                                 ),
+                'disableAnimation' => FALSE,
+                'showRemaining' => FALSE,
+                'disableTrackInformation' => FALSE,
+                'rtlMode' => FALSE,
+
                         );
 
             $this->options = Options::get( self::OPTNAME );
@@ -217,6 +223,12 @@ class HBAudioPlayer extends Plugin
                     $durations = array( 1 => 'Disabled', 100 => 100, 200 => 200, 300 => 300, 400 => 400, 500 => 500, 600 => 600, 700 => 700, 800 => 800, 900 => 900, 1000 => 1000 );
 
                     $ui = new FormUI( strtolower( get_class( $this ) ) );
+                    // First all the hidden settings
+                    foreach( $this->options['colourScheme'] as $opt => $value ) {
+                        $ui->append( 'hidden', "cs_".$opt, 'null:null' );
+                            $optn = "cs_$opt";
+                            $ui->$optn->value = $value;
+                    }
                     // TODO: Find a way to easily list silo locations
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
                         $ui->genfs->append( 'text', 'default_path', 'null:null', _t( 'Default Audio Path:' ), 'hbap_text' );
@@ -226,11 +238,7 @@ class HBAudioPlayer extends Plugin
                         $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width' ), 'hbap_text' );
                             $ui->appfs->width->value = $this->options['width'];
                             $ui->appfs->width->helptext = _t( 'You can enter a value in pixels (e.g. 200) or as a percentage (e.g. 100%)' );
-                        foreach( $this->options['colourScheme'] as $opt => $value ) {
-                            $ui->appfs->append( 'hidden', "cs_".$opt, 'null:null' );
-                                $optn = "cs_$opt";
-                                $ui->appfs->$optn->value = $value;
-                        }
+                        
                         $ui->appfs->append( 'select', 'fieldsel', 'null:null', _t( 'Colour Scheme Selector' ) );
                             $ui->appfs->fieldsel->template = 'hbap_select';
                             $ui->appfs->fieldsel->options = array (
@@ -250,118 +258,41 @@ class HBAudioPlayer extends Plugin
                                                     'border'            => _t( 'Progress Bar Border' ),
                                                     'skip'              => _t( 'Next/Previous Buttons' )
                                                     );
+                            $themeColorStr = '';
+                            foreach($this->getThemeColors() as $themeColor) {
+                                $themeColorStr .= "<li style='background:#{$themeColor}' title='#{$themeColor}'>#{$themeColor}</li>";
+                            }
 
-/*
-<option value="bg" selected="selected"><?php _e('Background', $this->textDomain) ?></option>
-				  <option value="leftbg"><?php _e('Left background', $this->textDomain) ?></option>
-				  <option value="lefticon"><?php _e('Left icon', $this->textDomain) ?></option>
-				  <option value="voltrack"><?php _e('Volume control track', $this->textDomain) ?></option>
-				  <option value="volslider"><?php _e('Volume control slider', $this->textDomain) ?></option>
-				  <option value="rightbg"><?php _e('Right background', $this->textDomain) ?></option>
-				  <option value="rightbghover"><?php _e('Right background (hover)', $this->textDomain) ?></option>
-				  <option value="righticon"><?php _e('Right icon', $this->textDomain) ?></option>
-				  <option value="righticonhover"><?php _e('Right icon (hover)', $this->textDomain) ?></option>
-				  <option value="text"><?php _e('Text', $this->textDomain) ?></option>
-				  <option value="tracker"><?php _e('Progress bar', $this->textDomain) ?></option>
-				  <option value="track"><?php _e('Progress bar track', $this->textDomain) ?></option>
-				  <option value="border"><?php _e('Progress bar border', $this->textDomain) ?></option>
-				  <option value="loader"><?php _e('Loading bar', $this->textDomain) ?></option>
-				  <option value="skip"><?php _e('Next/Previous buttons', $this->textDomain) ?></option>
-				</select>
-  */
-                    $ui->append( 'fieldset', 'feedfs', _t( 'Feed' ) );
+                            $ui->appfs->fieldsel->helptext = '<input name="colorvalue" type="text" id="colorvalue" size="10" maxlength="7" />
+                                                          <span id="colorsample"></span>
+                                                          <span id="picker-btn">'. _t( 'Pick' ).'</span>
+                                                          <div id="themecolor"><span>'._t( 'Theme Colours' ). '</span>
+                                                            <ul>'.$themeColorStr.'</ul></div>';
+                        $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
+                            $ui->appfs->colour_selector_demo->append( 'static', 'demo', '<div id="demoplayer">Audio Player</div>
+                                                                                        <script type="text/javascript">
+                                                                                        /* AudioPlayer.embed("ap_demoplayer", {demomode:"yes"}); */
+                                                                                        </script>');
+                        $ui->appfs->append( 'text', 'cs_pagebg', 'null:null', _t( 'Page Background' ), 'hbap_text' );
+                            $ui->appfs->cs_pagebg->value = $this->options['colourScheme']['pagebg'];
+                            $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
+                        // TODO: Need to put this inline with the pagebg somehow.
+                        $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
+                            $ui->appfs->cs_transparentpagebg->value = $this->options['colourScheme']['transparentpagebg'];
+                        // TODO: Add "Reset colours button
+                        $ui->appfs->append( 'checkbox', 'disableAnimation', 'null:null', _t( 'Disable Animation' ), 'hbap_checkbox' );
+                            $ui->appfs->disableAnimation->value = $this->options['disableAnimation'];
+                            $ui->appfs->disableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.');
+                        $ui->appfs->append( 'checkbox', 'showRemaining', 'null:null', _t( 'Show Remaining' ), 'hbap_checkbox' );
+                            $ui->appfs->showRemaining->value = $this->options['showRemaining'];
+                            $ui->appfs->showRemaining->helptext = _t( 'This will make the time display count down rather than up.' );
+                        $ui->appfs->append( 'checkbox', 'disableTrackInformation', 'null:null', _t( 'Disable Track Information' ), 'hbap_checkbox' );
+                            $ui->appfs->disableTrackInformation->value = $this->options['disableTrackInformation'];
+                            $ui->appfs->disableTrackInformation->helptext = _t( 'Select this if you wish to disable track information display (the player won\'t show titles or artist names even if they are available.)' );
+                        $ui->appfs->append( 'checkbox', 'rtlMode', 'null:null', _t( 'Switch to RTL Layout' ), 'hbap_checkbox' );
+                            $ui->appfs->rtlMode->value = $this->options['rtlMode'];
+                            $ui->appfs->rtlMode->helptext = _t( 'Select this to switch the player layout to RTL mode (right to left) for Arabic and Hebrew language blogs.' );
 
-
-                    $ui->append( 'fieldset', 'advfs', _t( 'Advanced' ) );
-
-                    /*
-                    $ui->append( 'checkbox', 'autoload', 'null:null', _t( 'Autoload?' ), 'slim_checkbox' );
-                        $ui->autoload->value = $this->options['autoload'];
-                        $ui->autoload->helptext = _t( 'Automatically activate Slimbox on all links pointing to ".jpg" or ".png" or ".gif". All image links contained in the same block or paragraph (having the same parent element) will automatically be grouped together in a gallery. If this isn\'t activated you will need to manually add \'rel="lightbox"\' for individual images or \'rel="lightbox-imagesetname"\' for groups on all links you wish to use Slimbox.' );
-                    $ui->append( 'checkbox', 'picasa', 'null:null', _t( 'Enable Picasaweb Integration?' ), 'slim_checkbox' );
-                        $ui->picasa->value = $this->options['picasa'];
-                        $ui->picasa->helptext = _t( 'Automatically add the Slimbox effect to Picasaweb links when provided an appropriate thumbnail (this is separate from the autoload script which only functions on image links).' );
-                    $ui->append( 'checkbox', 'flickr', 'null:null', _t( 'Enable Flickr Integration?' ), 'slim_checkbox' );
-                        $ui->flickr->value = $this->options['flickr'];
-                        $ui->flickr->helptext = _t( 'Automatically add the Slimbox effect to Flickr links when provided an appropriate thumbnail (this is separate from the autoload script which only functions on image links).' );
-                    $ui->append( 'checkbox', 'smugmug', 'null:null', _t( 'Enable SmugMug Integration?' ), 'slim_checkbox' );
-                        $ui->smugmug->value = $this->options['smugmug'];
-                        $ui->smugmug->helptext = _t( 'Automatically add the Slimbox effect to SmugMug links when provided an appropriate thumbnail (this is separate from the autoload script which only functions on image links).' );
-                    $ui->append( 'checkbox', 'loop', 'null:null', _t( 'Loop?' ), 'slim_checkbox' );
-                        $ui->loop->value = $this->options['loop'];
-                        $ui->loop->helptext = _t( 'Loop between the first and last images of a Slimbox gallery when there is more than one image to display.' );
-                    $ui->append( 'select', 'overlay_opacity', 'null:null', _t( 'Overlay Opacity' ) );
-                        $ui->overlay_opacity->value = $this->options['overlay_opacity'];
-                        $ui->overlay_opacity->helptext = _t( 'Adjust the opacity of the background overlay. 1 is completely opaque, 0 is completely transparent.' );
-                        $ui->overlay_opacity->options = array( '0' => 0, '0.1' => 0.1, '0.2' => 0.2, '0.3' => 0.3, '0.4' => 0.4, '0.5' => 0.5, '0.6' => 0.6, '0.7' => 0.7, '0.8' => 0.8, '0.9' => 0.9, '1' => 1);
-                        $ui->overlay_opacity->template = 'slim_select';
-                    $ui->append( 'text', 'overlay_color', 'null:null', _t( 'Overlay Color' ), 'slim_text' );
-                        $ui->overlay_color->value = $this->options['overlay_color'];
-                        $ui->overlay_color->helptext = '<div id="picker"></div>'. _t( 'Set the color of the overlay by selecting your hue from the circle and color gradient from the square. Alternatively you may manually enter a valid HTML color code. The color of the entry field will change to reflect your selected color. Default is #000000.' );
-                   
-                    $ui->append( 'select', 'overlay_fade_duration', 'null:null', _t( 'Overlay Fade Duration' ) );
-                        $ui->overlay_fade_duration->value = $this->options['overlay_fade_duration'];
-                        $ui->overlay_fade_duration->helptext = _t( 'Adjust the duration of the overlay fade-in and fade-out animations, in milliseconds.' );
-                        $ui->overlay_fade_duration->options = $durations;
-                        $ui->overlay_fade_duration->template = 'slim_select';
-                    $ui->append( 'select', 'resize_duration', 'null:null', _t( 'Resize Duration' ) );
-                        $ui->resize_duration->value = $this->options['resize_duration'];
-                        $ui->resize_duration->helptext = _t( 'Ajust the duration of the resize animation for width and height, in milliseconds. ' );
-                        $ui->resize_duration->options = $durations;
-                        $ui->resize_duration->template = 'slim_select';
-                    $ui->append( 'select', 'resize_easing', 'null:null', _t( 'Resize Easing' ) );
-                        $ui->resize_easing->value = $this->options['resize_easing'];
-                        $ui->resize_easing->helptext = _t( 'Select the name of the easing effect that you want to use for the resize animation (jQuery Easing Plugin required and included). Many easings require a longer execution time to look good, so you should adjust the resizeDuration option above as well.' );
-                        $ui->resize_easing->options = array('swing' => 'swing', 'easeInQuad' => 'easeInQuad', 'easeOutQuad' => 'easeOutQuad', 'easeInOutQuad' => 'easeInOutQuad', 'easeInCubic' => 'easeInCubic', 'easeOutCubic' => 'easeOutCubic', 'easeInOutCubic' => 'easeInOutCubic', 'easeInQuart' => 'easeInQuart', 'easeOutQuart' => 'easeOutQuart', 'easeInOutQuart' => 'easeInOutQuart', 'easeInQuint' => 'easeInQuint', 'easeOutQuint' => 'easeOutQuint', 'easeInOutQuint' => 'easeInOutQuint', 'easeInSine' => 'easeInSine', 'easeOutSine' => 'easeOutSine', 'easeInOutSine' => 'easeInOutSine', 'easeInExpo' => 'easeInExpo', 'easeOutExpo' => 'easeOutExpo', 'easeInOutExpo' => 'easeInOutExpo', 'easeInCirc' => 'easeInCirc', 'easeOutCirc' => 'easeOutCirc', 'easeInOutCirc' => 'easeInOutCirc', 'easeInElastic' => 'easeInElastic', 'easeOutElastic' => 'easeOutElastic', 'easeInOutElastic' => 'easeInOutElastic', 'easeInBack' => 'easeInBack', 'easeOutBack' => 'easeOutBack', 'easeInOutBack' => 'easeInOutBack', 'easeInBounce' => 'easeInBounce', 'easeOutBounce' => 'easeOutBounce', 'easeInOutBounce' => 'easeInOutBounce' );
-                        $ui->resize_easing->template = 'slim_select';
-                    $ui->append( 'text', 'initial_width', 'null:null', _t( 'Initial Width' ), 'slim_text' );
-                        $ui->initial_width->value = $this->options['initial_width'];
-                        $ui->initial_width->helptext = _t( 'Set the initial width of the box, in pixels. ' );
-                    $ui->append( 'text', 'initial_height', 'null:null', _t( 'Initial Height' ), 'slim_text' );
-                        $ui->initial_height->value = $this->options['initial_height'];
-                        $ui->initial_height->helptext = _t( 'Set the initial height of the box, in pixels. ' );
-                    $ui->append( 'select', 'image_fade_duration', 'null:null', _t( 'Image Fade Duration' ) );
-                        $ui->image_fade_duration->value = $this->options['image_fade_duration'];
-                        $ui->image_fade_duration->helptext = _t( 'Set the duration of the image fade-in animation, in milliseconds. Disabling this effect will make the image appear instantly.' );
-                        $ui->image_fade_duration->options = $durations;
-                        $ui->image_fade_duration->template = 'slim_select';
-                    $ui->append( 'select', 'caption_animation_duration', 'null:null', _t( 'Caption Animation Duration' ) );
-                        $ui->caption_animation_duration->value = $this->options['caption_animation_duration'];
-                        $ui->caption_animation_duration->helptext = _t( 'Set the duration of the caption animation, in milliseconds. Disabling this effect will make the caption appear instantly.' );
-                        $ui->caption_animation_duration->options = $durations;
-                        $ui->caption_animation_duration->template = 'slim_select';
-                    $ui->append( 'text', 'counter_text', 'null:null', _t( 'Counter Text' ), 'slim_text' );
-                        $ui->counter_text->value = $this->options['counter_text'];
-                        $ui->counter_text->helptext = _t( 'Customize, translate or disable the counter text which appears in the captions when multiple images are shown. Inside the text, {x} will be replaced by the current image index, and {y} will be replaced by the total number of images. Set it to false (boolean value, without quotes) or "" to disable the counter display. Default is "Image {x} of {y}".' );
-                    // TODO: Need to workout how I can get this to span 3 rows of options.
-                    $helptxt = 'These options allow the user to specify an array of key codes representing the keys to press to close or navigate to the next or previous images.<br />
-
-Just select the corresponding text box and press the keys you would like to use. Alternately check the box below to manually enter or clear key codes.<br />
-<br />
-Default close values are [27, 88, 67] which means Esc (27), "x" (88) and "c" (67).<br />
-Default previous values are [37, 80] which means Left arrow (37) and "p" (80).<br />
-Default next values are [39, 78] which means Right arrow (39) and "n" (78).<br />
-<br />
-<strong>Enable Manual Key Code Entry?</strong><input id="slimbox_manual_key" type="checkbox" value="manual_key"/>
-<input id="slimbox_key_defined" type="hidden" value="That key has already been defined."/>';
-
-                    $ui->append( 'text', 'close_keys', 'null:null', _t( 'Close Keys' ), 'slim_text' );
-                        $ui->close_keys->value = $this->options['close_keys'];
-                        $ui->close_keys->class = 'formcontrol keys';
-                        $ui->close_keys->helptext = _t( $helptxt );
-                    $ui->append( 'text', 'previous_keys', 'null:null', _t( 'Previous Keys' ), 'slim_text' );
-                        $ui->previous_keys->value = $this->options['previous_keys'];
-                        $ui->previous_keys->class = 'formcontrol keys';
-                        $ui->previous_keys->helptext = '';
-                    $ui->append( 'text', 'next_keys', 'null:null', _t( 'Next Keys' ), 'slim_text' );
-                        $ui->next_keys->value = $this->options['next_keys'];
-                        $ui->next_keys->class = 'formcontrol keys';
-                        $ui->next_keys->helptext = '';
-                    // TODO: Add this functionality if I find a need for it.
-                    /*$ui->append( 'checkbox', 'maintenance', 'null:null', _t( 'Maintenance mode?' ), 'slim_checkbox' );
-                        $ui->maintenance->value = $this->options['maintenance'];
-                        $ui->maintenance->helptext = _t( 'Enable a maintenance mode for testing purposes. When enabled slimbox will be disabled until you enable it by appending ?slimbox=on to a url. It will then remain on until you disable it by appending ?slimbox=off to a url, you clear your cookies, or in certain cases you clear your browser cache. This setting only impacts things at a vistor level, not a site wide level.' );
-                     */
                     $ui->append( 'submit', 'save', _t( 'Save Options' ) );
                     $ui->on_success ( array( $this, 'storeOpts' ) );
                     $ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
@@ -403,6 +334,7 @@ Default next values are [39, 78] which means Right arrow (39) and "n" (78).<br /
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
              Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/farbtastic.css', 'screen'), 'farbtastic-css' );
+             //Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer' );
         }
     }
 
@@ -416,6 +348,7 @@ Default next values are [39, 78] which means Right arrow (39) and "n" (78).<br /
     public function action_admin_footer( $theme )
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
+
             Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/farbtastic.js', 'jquery.farbtastic', 'jquery' );
             Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/load_farbtastic.js', 'jquery.load.farbtastic', 'jquery.farbtastic' );
 
@@ -427,6 +360,10 @@ Default next values are [39, 78] which means Right arrow (39) and "n" (78).<br /
             $output .= 'form#'.strtolower( get_class( $this ) ).' span.helptext { margin-left:25px; }';    // Need this for FF3 on Solaris.
             $output .= 'form#'.strtolower( get_class( $this ) ).' p.error { float:left; color:#A00; }';
             $output .= '.farbtastic { margin-left: -200px; margin-top: 25px; float: left; }';
+            $output .= '#colour_selector_demo { margin: 25px 0 0 16%;}';
+            if (!$this->options["colourScheme"]["transparentpagebg"]) {
+                $output .= '#colour_selector_demo {background-color: #'.$this->options["colourScheme"]["pagebg"].'; }';
+            }
             $output .= '</style>';
             echo $output;
         }
@@ -440,6 +377,19 @@ Default next values are [39, 78] which means Right arrow (39) and "n" (78).<br /
     public function theme_header( $theme )
     {
         $this->options = Options::get( self::OPTNAME );
+    }
+
+    /**
+     * Parses theme stylesheet and pulls out the colours used
+     *
+     * @return array of colors from current theme
+     */
+    
+    function getThemeColors() {
+            $themeCssFile = Themes::get_active()->theme_dir.'style.css';
+            $theme_css = implode('', file( $themeCssFile ) );
+            preg_match_all('/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', $theme_css, $matches);
+            return array_unique($matches[1]);
     }
 }
 ?>
