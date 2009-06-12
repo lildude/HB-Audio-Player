@@ -132,7 +132,7 @@ class HBAudioPlayer extends Plugin
         if( Plugins::id_from_file( $file ) == Plugins::id_from_file( __FILE__ ) ) {
             $defOptions = array(
                 'default_path'  => '',
-                'width'         => 200,
+                'width'         => 300,
                 'colourScheme'  => array (
                                     'bg'                => 'E5E5E5',
                                     'text'              => '333333',
@@ -152,7 +152,7 @@ class HBAudioPlayer extends Plugin
                                     'pagebg'            => 'FFFFFF',
                                     'transparentpagebg' => TRUE
                                 ),
-                'disableAnimation' => FALSE,
+                'enableAnimation' => TRUE,
                 'showRemaining' => FALSE,
                 'disableTrackInformation' => FALSE,
                 'rtlMode' => FALSE,
@@ -225,14 +225,15 @@ class HBAudioPlayer extends Plugin
             switch ( $action ) {
                 case _t( 'Configure' ):
                     $this->options = Options::get( self::OPTNAME );
-                    $durations = array( 1 => 'Disabled', 100 => 100, 200 => 200, 300 => 300, 400 => 400, 500 => 500, 600 => 600, 700 => 700, 800 => 800, 900 => 900, 1000 => 1000 );
-
                     $ui = new FormUI( strtolower( get_class( $this ) ) );
+                    $ui->append( 'wrapper', 'colourselector', 'formcontrol' );
+
                     // First all the hidden settings
                     foreach( $this->options['colourScheme'] as $opt => $value ) {
-                        $ui->append( 'hidden', "cs_".$opt, 'null:null' );
+                        $ui->colourselector->append( 'hidden', "cs_".$opt, 'null:null' );
                             $optn = "cs_$opt";
-                            $ui->$optn->value = $value;
+                            $ui->colourselector->$optn->value = '#'.$value;
+                            $ui->colourselector->$optn->id = $optn."color";
                     }
                     // TODO: Find a way to easily list silo locations
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
@@ -272,25 +273,30 @@ class HBAudioPlayer extends Plugin
 
                             $ui->appfs->fieldsel->helptext = '<input name="colorvalue" type="text" id="colorvalue" size="10" maxlength="7" />
                                                           <span id="colorsample"></span>
-                                                          <span id="picker-btn">'. _t( 'Pick' ).'</span>
                                                           <span id="themecolor-btn">'._t( 'Theme Colours' ). '</span>
                                                           <div id="themecolor">
+                                                            <span>'._t( 'Theme Colours' ).'</span>
                                                             <ul>'.$themeColorStr.'</ul></div>';
                         $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
                             $ui->appfs->colour_selector_demo->append( 'static', 'demo', '<div id="demoplayer">Audio Player</div>
                                                                                         <script type="text/javascript">
-                                                                                        /* AudioPlayer.embed("ap_demoplayer", {demomode:"yes"}); */
+                                                                                        AudioPlayer.embed("demoplayer", {demomode:"yes"});
                                                                                         </script>');
-                        $ui->appfs->append( 'text', 'cs_pagebg', 'null:null', _t( 'Page Background' ), 'hbap_text' );
-                            $ui->appfs->cs_pagebg->value = $this->options['colourScheme']['pagebg'];
-                            $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
+                        $ui->appfs->append( 'text', 'cs_pagebgcolor', 'null:null', _t( 'Page Background' ), 'hbap_text' );
+                            $ui->appfs->cs_pagebgcolor->value = '#'.$this->options['colourScheme']['pagebg'];
+                            $ui->appfs->cs_pagebgcolor->id = 'cs_pagebgcolor';
+                            if ($this->options['colourScheme']['transparentpagebg']) {
+                                $ui->appfs->cs_pagebgcolor->disabled = TRUE;
+                            }
+                            $ui->appfs->cs_pagebgcolor->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
                         // TODO: Need to put this inline with the pagebg somehow.
                         $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
                             $ui->appfs->cs_transparentpagebg->value = $this->options['colourScheme']['transparentpagebg'];
+                            $ui->appfs->cs_transparentpagebg->id = 'cs_transparentpagebg';
                         // TODO: Add "Reset colours button
-                        $ui->appfs->append( 'checkbox', 'disableAnimation', 'null:null', _t( 'Disable Animation' ), 'hbap_checkbox' );
-                            $ui->appfs->disableAnimation->value = $this->options['disableAnimation'];
-                            $ui->appfs->disableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.');
+                        $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation' ), 'hbap_checkbox' );
+                            $ui->appfs->enableAnimation->value = $this->options['enableAnimation'];
+                            $ui->appfs->enableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.');
                         $ui->appfs->append( 'checkbox', 'showRemaining', 'null:null', _t( 'Show Remaining' ), 'hbap_checkbox' );
                             $ui->appfs->showRemaining->value = $this->options['showRemaining'];
                             $ui->appfs->showRemaining->helptext = _t( 'This will make the time display count down rather than up.' );
@@ -367,12 +373,78 @@ class HBAudioPlayer extends Plugin
     public function action_admin_header( $theme )
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
+            $this->options = Options::get( self::OPTNAME );
+             Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/css/admin.css', 'screen'), 'admin-css' );
              Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.css', 'screen'), 'colorpicker-css' );
-             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.js', 'jquery.colorpicker', 'jquery' );
-             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js', 'audioplayer-admin', 'jquery.colorpicker' );
+             //Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.js', 'jquery.colorpicker', 'jquery' );
+             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker-src/js/colorpicker.js', 'jquery.colorpicker', 'jquery' );
+             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js?'.time(), 'audioplayer-admin', 'jquery.colorpicker' );
+             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
+             Stack::add( 'admin_header_javascript', "
+  AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',
+    {
+    width:'{$this->options['width']}',
+    animation:'{$this->options['enableAnimation']}',
+    encode:'{$this->options['encode']}',
+    initialvolume:'{$this->options['initvol']}',
+    remaining:'{$this->options['showRemaining']}',
+    noinfo:'{$this->options['disableTrackInformation']}',
+    buffer:'{$this->options['buffer']}',
+    checkpolicy:'{$this->options['chkpolicy']}',
+    rtl:'{$this->options['rtl']}',
+    bg:'{$this->options['colourScheme']['bg']}',
+    text:'{$this->options['colourScheme']['text']}',
+    leftbg:'{$this->options['colourScheme']['leftbg']}',
+    lefticon:'{$this->options['colourScheme']['lefticon']}',
+    volslider:'{$this->options['colourScheme']['volslider']}',
+    voltrack:'{$this->options['colourScheme']['voltrack']}',
+    rightbg:'{$this->options['colourScheme']['rightbg']}',
+    rightbghover:'{$this->options['colourScheme']['rightbghover']}',
+    righticon:'{$this->options['colourScheme']['righticon']}',
+    righticonhover:'{$this->options['colourScheme']['righticonhover']}',
+    track:'{$this->options['colourScheme']['track']}',
+    loader:'{$this->options['colourScheme']['loader']}',
+    border:'{$this->options['colourScheme']['border']}',
+    tracker:'{$this->options['colourScheme']['tracker']}',
+    skip:'{$this->options['colourScheme']['skip']}',
+    pagebg:'{$this->options['colourScheme']['pagebg']}',
+    transparentpagebg:'yes'
+});
+", 'audioplayer-init', 'audioplayer');
         }
     }
-
+    /*
+                'default_path'  => '',
+                'width'         => 200,
+                'colourScheme'  => array (
+                                    'bg'                => 'E5E5E5',
+                                    'text'              => '333333',
+                                    'leftbg'            => 'CCCCCC',
+                                    'lefticon'          => '333333',
+                                    'volslider'         => '666666',
+                                    'voltrack'          => 'FFFFFF',
+                                    'rightbg'           => 'B4B4B4',
+                                    'rightbghover'      => '999999',
+                                    'righticon'         => '333333',
+                                    'righticonhover'    => 'FFFFFF',
+                                    'track'             => 'FFFFFF',
+                                    'loader'            => '009900',
+                                    'border'            => 'CCCCCC',
+                                    'tracker'           => 'DDDDDD',
+                                    'skip'              => '666666',
+                                    'pagebg'            => 'FFFFFF',
+                                    'transparentpagebg' => TRUE
+                                ),
+                'disableAnimation' => FALSE,
+                'showRemaining' => FALSE,
+                'disableTrackInformation' => FALSE,
+                'rtlMode' => FALSE,
+                'feedalternate' => 'nothing',
+                'feedcustom' => '[Audio clip: view full post to listen]',
+                'initvol' => 60,
+                'buffer' => 5,
+                'chkpolicy' => FALSE,
+                'encode' => TRUE
     /**
      * Add custom Javascript and CSS information to "Configure" page
      *
@@ -388,18 +460,6 @@ class HBAudioPlayer extends Plugin
             Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/load_farbtastic.js', 'jquery.load.farbtastic', 'jquery.farbtastic' );
 
             $output = '<style type="text/css">';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' #themecolor-btn { background: transparent url("'.$this->get_url().'/lib/imgs/theme-picker-icon.png") no-repeat scroll left top; cursor: pointer; padding: 5px 0 5px 28px; text-decoration: underline; margin-left: 5px; float: left; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' #picker-btn { background: transparent url("'.$this->get_url().'/lib/imgs/picker-icon.png") no-repeat scroll left top; cursor: pointer; padding: 5px 0 5px 28px; text-decoration: underline; margin-left: 5px; float: left; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' #colorsample { background-color: #fff; border: 1px solid #444; height: 19px; width: 19px; float: left; margin: 0 5px; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' #colorvalue { float:left; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' .formcontrol { clear: both; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' span.pct15 select { width:105%; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' span.pct15 { text-align:right; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' span.pct5 input { margin-left:25px; }';
-            $output .= 'form#'.strtolower( get_class( $this ) ).' span.helptext { margin-left:25px; }';    // Need this for FF3 on Solaris.
-            $output .= 'form#'.strtolower( get_class( $this ) ).' p.error { float:left; color:#A00; }';
-            $output .= '.farbtastic { margin-left: -200px; margin-top: 25px; float: left; }';
-            $output .= '#colour_selector_demo { margin: 25px 0 0 16%;}';
             if (!$this->options["colourScheme"]["transparentpagebg"]) {
                 $output .= '#colour_selector_demo {background-color: #'.$this->options["colourScheme"]["pagebg"].'; }';
             }
