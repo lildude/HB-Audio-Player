@@ -2,6 +2,7 @@
 	<span class="pct15"><label for="<?php echo $id; ?>"><?php echo $caption; ?></label></span>
     <?php if (isset($pct) && $pct > 25) { $pct = $pct; $hpct = 0; } else { $pct = 15; $hpct = "pct65"; } ?>
         <?php
+        $style = '';
         $style .= (isset($pct)) ? 'width:100%;' : '';
         $style .= (isset($disabled)) ? 'color:#999999;' : '';
         ?>

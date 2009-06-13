@@ -131,9 +131,9 @@ class HBAudioPlayer extends Plugin
     {
         if( Plugins::id_from_file( $file ) == Plugins::id_from_file( __FILE__ ) ) {
             $defOptions = array(
-                'default_path'  => '',
+                'defaultPath'  => Site::get_url('habari').'/files',
                 'width'         => 300,
-                'colourScheme'  => array (
+                'colorScheme'  => array (
                                     'bg'                => 'E5E5E5',
                                     'text'              => '333333',
                                     'leftbg'            => 'CCCCCC',
@@ -156,11 +156,11 @@ class HBAudioPlayer extends Plugin
                 'showRemaining' => FALSE,
                 'disableTrackInformation' => FALSE,
                 'rtlMode' => FALSE,
-                'feedalternate' => 'nothing',
-                'feedcustom' => '[Audio clip: view full post to listen]',
-                'initvol' => 60,
+                'feedAlt' => 'nothing',
+                'feedCustom' => '[Audio clip: view full post to listen]',
+                'initVol' => 60,
                 'buffer' => 5,
-                'chkpolicy' => FALSE,
+                'chkPolicy' => FALSE,
                 'encode' => TRUE
                         );
 
@@ -229,17 +229,19 @@ class HBAudioPlayer extends Plugin
                     $ui->append( 'wrapper', 'colourselector', 'formcontrol' );
 
                     // First all the hidden settings
-                    foreach( $this->options['colourScheme'] as $opt => $value ) {
+                    foreach( $this->options['colorScheme'] as $opt => $value ) {
                         $ui->colourselector->append( 'hidden', "cs_".$opt, 'null:null' );
                             $optn = "cs_$opt";
+                            if ( $optn == 'cs_pagebg' ) continue;
                             $ui->colourselector->$optn->value = '#'.$value;
                             $ui->colourselector->$optn->id = $optn."color";
                     }
                     // TODO: Find a way to easily list silo locations
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
-                        $ui->genfs->append( 'text', 'default_path', 'null:null', _t( 'Default Audio Path:' ), 'hbap_text' );
-                            $ui->genfs->default_path->value = $this->options['default_path'];
-                            $ui->genfs->default_path->helptext = _t( 'This is the default location for your audio files. When you use the [audio] syntax and don\'t provide an absolute URL for the mp3 file (the full URL including "http://") Audio Player will automatically look for the file in this location. You can set this to a folder located inside your blog folder structure or, alternatively, if you wish to store your audio files outside your blog (maybe even on a different server), choose "Custom" from the drop down and enter the absolute URL to that location.' );
+                        $ui->genfs->append( 'text', 'defaultPath', 'null:null', _t( 'Default Audio Path:' ), 'hbap_text' );
+                            $ui->genfs->defaultPath->value = $this->options['defaultPath'];
+                            $ui->genfs->defaultPath->pct = 80;
+                            $ui->genfs->defaultPath->helptext = _t( 'This is the default location for your audio files. When you use the [audio] syntax and don\'t provide an absolute URL for the mp3 file (the full URL including "http://") Audio Player will automatically look for the file in this location. You can set this to a folder located inside your blog folder structure or, alternatively, if you wish to store your audio files outside your blog (maybe even on a different server), choose "Custom" from the drop down and enter the absolute URL to that location.' );
 
                     $ui->append( 'fieldset', 'appfs', _t( 'Appearance' ) );
                         $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width' ), 'hbap_text' );
@@ -278,20 +280,21 @@ class HBAudioPlayer extends Plugin
                                                             <span>'._t( 'Theme Colours' ).'</span>
                                                             <ul>'.$themeColorStr.'</ul></div>';
                         $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
+                        // TODO: Get the player to update when saving the options
                             $ui->appfs->colour_selector_demo->append( 'static', 'demo', '<div id="demoplayer">Audio Player</div>
                                                                                         <script type="text/javascript">
                                                                                         AudioPlayer.embed("demoplayer", {demomode:"yes"});
                                                                                         </script>');
-                        $ui->appfs->append( 'text', 'cs_pagebgcolor', 'null:null', _t( 'Page Background' ), 'hbap_text' );
-                            $ui->appfs->cs_pagebgcolor->value = '#'.$this->options['colourScheme']['pagebg'];
-                            $ui->appfs->cs_pagebgcolor->id = 'cs_pagebgcolor';
-                            if ($this->options['colourScheme']['transparentpagebg']) {
-                                $ui->appfs->cs_pagebgcolor->disabled = TRUE;
+                        $ui->appfs->append( 'text', 'cs_pagebg', 'null:null', _t( 'Page Background' ), 'hbap_text' );
+                            $ui->appfs->cs_pagebg->value = '#'.$this->options['colorScheme']['pagebg'];
+                            $ui->appfs->cs_pagebg->id = 'cs_pagebg';
+                            if ($this->options['colorScheme']['transparentpagebg']) {
+                                $ui->appfs->cs_pagebg->disabled = TRUE;
                             }
-                            $ui->appfs->cs_pagebgcolor->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
+                            $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
                         // TODO: Need to put this inline with the pagebg somehow.
                         $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
-                            $ui->appfs->cs_transparentpagebg->value = $this->options['colourScheme']['transparentpagebg'];
+                            $ui->appfs->cs_transparentpagebg->value = $this->options['colorScheme']['transparentpagebg'];
                             $ui->appfs->cs_transparentpagebg->id = 'cs_transparentpagebg';
                         // TODO: Add "Reset colours button
                         $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation' ), 'hbap_checkbox' );
@@ -308,27 +311,28 @@ class HBAudioPlayer extends Plugin
                             $ui->appfs->rtlMode->helptext = _t( 'Select this to switch the player layout to RTL mode (right to left) for Arabic and Hebrew language blogs.' );
 
                     $ui->append( 'fieldset', 'feedfs', _t( 'Feed' ) );
-                        $ui->feedfs->append( 'select', 'feedalternate', 'null:null', _t( 'Alternate Content') );
-                            $ui->feedfs->feedalternate->template = 'hbap_select';
-                            $ui->feedfs->feedalternate->value = $this->options['feedalternate'];
-                            $ui->feedfs->feedalternate->options = array( 'download' => 'Download Link', 'nothing' => 'Nothing', 'custom' => 'Custom' );
-                            $ui->feedfs->feedalternate->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have three choices:<br /><br />
+                        $ui->feedfs->append( 'select', 'feedAlt', 'null:null', _t( 'Alternate Content') );
+                            $ui->feedfs->feedAlt->template = 'hbap_select';
+                            $ui->feedfs->feedAlt->value = $this->options['feedAlt'];
+                            $ui->feedfs->feedAlt->options = array( 'download' => 'Download Link', 'nothing' => 'Nothing', 'custom' => 'Custom' );
+                            $ui->feedfs->feedAlt->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have three choices:<br /><br />
                                 <strong>Download link</strong>: Choose this if you are OK with subscribers downloading the file.<br />
                                 <strong>Nothing</strong>: Choose this if you feel that your feed shouldn\'t contain any reference to the audio file.<br />
                                 <strong>Custom</strong>: Choose this to use your own alternative content for all player instances. You can use this option to tell subscribers that they can listen to the audio file if they read the post on your blog.');
-                        $ui->feedfs->append( 'text', 'feedcustom', 'null:null', _t( 'Custom alternate content' ), 'hbap_text' );
-                            $ui->feedfs->feedcustom->value = $this->options['feedcustom'];
+                        $ui->feedfs->append( 'text', 'feedCustom', 'null:null', _t( 'Custom alternate content' ), 'hbap_text' );
+                            $ui->feedfs->feedCustom->value = $this->options['feedCustom'];
+                            $ui->feedfs->feedCustom->pct = 80;
 
                     $ui->append( 'fieldset', 'advfs', _t( 'Advanced' ) );
-                        $ui->advfs->append( 'text', 'initvol', 'null:null', _t( 'Initial Volume' ), 'hbap_text' );
-                            $ui->advfs->initvol->value = $this->options['initvol'];
-                            $ui->advfs->initvol->helptext = _t( 'This is the volume at which the player defaults to (0 is off, 100 is full volume)' );
+                        $ui->advfs->append( 'text', 'initVol', 'null:null', _t( 'Initial Volume' ), 'hbap_text' );
+                            $ui->advfs->initVol->value = $this->options['initVol'];
+                            $ui->advfs->initVol->helptext = _t( 'This is the volume at which the player defaults to (0 is off, 100 is full volume)' );
                         $ui->advfs->append( 'text', 'buffer', 'null:null', _t( 'Buffer time (in seconds)'), 'hbap_text' );
                             $ui->advfs->buffer->value = $this->options['buffer'];
                             $ui->advfs->buffer->helptext = _t( 'If you think your target audience is likely to have a slow internet connection, you can increase the player\'s buffering time (for standard broadband connections, 5 seconds is enough)' );
-                        $ui->advfs->append( 'checkbox', 'chkpolicy', 'null:null', _t( 'Check for policy file' ), 'hbap_checkbox' );
-                            $ui->advfs->chkpolicy->value = $this->options['chkpolicy'];
-                            $ui->advfs->chkpolicy->helptext = _t( 'Enable this to tell Audio Player to check for a policy file on the server. This allows Flash to read ID3 tags on remote servers. Only enable this if all your mp3 files are located on a server with a policy file.' );
+                        $ui->advfs->append( 'checkbox', 'chkPolicy', 'null:null', _t( 'Check for policy file' ), 'hbap_checkbox' );
+                            $ui->advfs->chkPolicy->value = $this->options['chkPolicy'];
+                            $ui->advfs->chkPolicy->helptext = _t( 'Enable this to tell Audio Player to check for a policy file on the server. This allows Flash to read ID3 tags on remote servers. Only enable this if all your mp3 files are located on a server with a policy file.' );
                         $ui->advfs->append( 'checkbox', 'encode', 'null:null', _t( 'Encode MP3 URLs' ), 'hbap_checkbox' );
                             $ui->advfs->encode->value = $this->options['encode'];
                             $ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.' );
@@ -354,9 +358,27 @@ class HBAudioPlayer extends Plugin
      public static function storeOpts ( $ui )
      {
         $newOptions = array();
-        foreach( $ui->controls as $option ) {
-            if ( $option->name == 'save' ) continue;
-            $newOptions[$option->name] = $option->value;
+        foreach ($ui->controls as $fieldset) {
+            if ( is_array( $fieldset->controls ) ) {
+                foreach ($fieldset->controls as $option){
+                    if ( $option->name == 'save' || $option->name == 'fieldsel' || $option->name == 'colour_selector_demo' ) continue;
+                    if ( strstr( $option->name, 'cs_' ) ) {
+                        list($a, $name) = explode( "_", $option->name );
+                        // Handle booleans
+                        if ( $name == 'transparentpagebg' ) {
+                            $newOptions['colorScheme'][$name] = (bool) $option->value;
+                        } else {
+                            $newOptions['colorScheme'][$name] = str_replace( '#', '', $option->value );
+                        }
+                    } else {
+                        if ( $option->name == 'enableAnimation' || $option->name == 'showRemaining' || $option->name == 'disableTrackInformation' || $option->name == 'rtlMode' || $option->name == 'chkPolicy' || $option->name == 'encode' ) {
+                            $newOptions[$option->name] = (bool) $option->value;
+                        } else {
+                            $newOptions[$option->name] = $option->value;
+                        }
+                    }                    
+                }
+            }
         }
         Options::set( self::OPTNAME, $newOptions );
      }
@@ -374,77 +396,17 @@ class HBAudioPlayer extends Plugin
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
             $this->options = Options::get( self::OPTNAME );
-             Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/css/admin.css', 'screen'), 'admin-css' );
-             Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.css', 'screen'), 'colorpicker-css' );
-             //Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.js', 'jquery.colorpicker', 'jquery' );
-             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker-src/js/colorpicker.js', 'jquery.colorpicker', 'jquery' );
-             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js?'.time(), 'audioplayer-admin', 'jquery.colorpicker' );
-             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
-             Stack::add( 'admin_header_javascript', "
-  AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',
-    {
-    width:'{$this->options['width']}',
-    animation:'{$this->options['enableAnimation']}',
-    encode:'{$this->options['encode']}',
-    initialvolume:'{$this->options['initvol']}',
-    remaining:'{$this->options['showRemaining']}',
-    noinfo:'{$this->options['disableTrackInformation']}',
-    buffer:'{$this->options['buffer']}',
-    checkpolicy:'{$this->options['chkpolicy']}',
-    rtl:'{$this->options['rtl']}',
-    bg:'{$this->options['colourScheme']['bg']}',
-    text:'{$this->options['colourScheme']['text']}',
-    leftbg:'{$this->options['colourScheme']['leftbg']}',
-    lefticon:'{$this->options['colourScheme']['lefticon']}',
-    volslider:'{$this->options['colourScheme']['volslider']}',
-    voltrack:'{$this->options['colourScheme']['voltrack']}',
-    rightbg:'{$this->options['colourScheme']['rightbg']}',
-    rightbghover:'{$this->options['colourScheme']['rightbghover']}',
-    righticon:'{$this->options['colourScheme']['righticon']}',
-    righticonhover:'{$this->options['colourScheme']['righticonhover']}',
-    track:'{$this->options['colourScheme']['track']}',
-    loader:'{$this->options['colourScheme']['loader']}',
-    border:'{$this->options['colourScheme']['border']}',
-    tracker:'{$this->options['colourScheme']['tracker']}',
-    skip:'{$this->options['colourScheme']['skip']}',
-    pagebg:'{$this->options['colourScheme']['pagebg']}',
-    transparentpagebg:'yes'
-});
-", 'audioplayer-init', 'audioplayer');
+            Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/css/admin.css', 'screen'), 'admin-css' );
+            Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.css', 'screen'), 'colorpicker-css' );
+            //Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.js', 'jquery.colorpicker', 'jquery' );
+            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker-src/js/colorpicker.js', 'jquery.colorpicker', 'jquery' );
+            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js?'.time(), 'audioplayer-admin', 'jquery.colorpicker' );
+            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
+            Stack::add( 'admin_header_javascript', "
+                AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".$this->php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
         }
     }
-    /*
-                'default_path'  => '',
-                'width'         => 200,
-                'colourScheme'  => array (
-                                    'bg'                => 'E5E5E5',
-                                    'text'              => '333333',
-                                    'leftbg'            => 'CCCCCC',
-                                    'lefticon'          => '333333',
-                                    'volslider'         => '666666',
-                                    'voltrack'          => 'FFFFFF',
-                                    'rightbg'           => 'B4B4B4',
-                                    'rightbghover'      => '999999',
-                                    'righticon'         => '333333',
-                                    'righticonhover'    => 'FFFFFF',
-                                    'track'             => 'FFFFFF',
-                                    'loader'            => '009900',
-                                    'border'            => 'CCCCCC',
-                                    'tracker'           => 'DDDDDD',
-                                    'skip'              => '666666',
-                                    'pagebg'            => 'FFFFFF',
-                                    'transparentpagebg' => TRUE
-                                ),
-                'disableAnimation' => FALSE,
-                'showRemaining' => FALSE,
-                'disableTrackInformation' => FALSE,
-                'rtlMode' => FALSE,
-                'feedalternate' => 'nothing',
-                'feedcustom' => '[Audio clip: view full post to listen]',
-                'initvol' => 60,
-                'buffer' => 5,
-                'chkpolicy' => FALSE,
-                'encode' => TRUE
+
     /**
      * Add custom Javascript and CSS information to "Configure" page
      *
@@ -460,8 +422,8 @@ class HBAudioPlayer extends Plugin
             Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/load_farbtastic.js', 'jquery.load.farbtastic', 'jquery.farbtastic' );
 
             $output = '<style type="text/css">';
-            if (!$this->options["colourScheme"]["transparentpagebg"]) {
-                $output .= '#colour_selector_demo {background-color: #'.$this->options["colourScheme"]["pagebg"].'; }';
+            if (!$this->options["colorScheme"]["transparentpagebg"]) {
+                $output .= '#colour_selector_demo {background-color: #'.$this->options["colorScheme"]["pagebg"].'; }';
             }
             $output .= '</style>';
             echo $output;
@@ -478,6 +440,9 @@ class HBAudioPlayer extends Plugin
         $this->options = Options::get( self::OPTNAME );
     }
 
+
+    /******************** Helper Functions ************************************/
+
     /**
      * Parses theme stylesheet and pulls out the colours used
      *
@@ -487,8 +452,44 @@ class HBAudioPlayer extends Plugin
     function getThemeColors() {
             $themeCssFile = Themes::get_active()->theme_dir.'style.css';
             $theme_css = implode('', file( $themeCssFile ) );
-            preg_match_all('/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', $theme_css, $matches);
+            preg_match_all('/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', strtoupper($theme_css), $matches);
             return array_unique($matches[1]);
     }
+
+    /**
+     * Formats a php associative array into a javascript object
+     * @return formatted string
+     * @param $object Object containing the options to format
+     */
+    function php2js($object) {
+            $js_options = '{';
+            $separator = "";
+            $real_separator = ",";
+            foreach( $object as $key => $value ) {
+                // Format booleans
+                if ( is_bool( $value ) ) $value = $value ? 'yes' : 'no';
+                $js_options .= $separator . $key . ':"' . rawurlencode( $value ) .'"';
+                $separator = $real_separator;
+            }
+            $js_options .= "}";
+
+            return $js_options;
+    }
+
+    function getPlayerOptions() {
+        $playerOptions = array();
+        $playerOptions['width'] = $this->options['width'];
+        $playerOptions['animation'] = $this->options['enableAnimation'];
+        $playerOptions['encode'] = $this->options['encode'];
+        $playerOptions['initialvolume'] = $this->options['initVol'];
+        $playerOptions['remaining'] = $this->options['showRemaining'];
+        $playerOptions['noinfo'] = $this->options['disableTrackInformation'];
+        $playerOptions['buffer'] = $this->options['buffer'];
+        $playerOptions['checkpolicy'] = $this->options['chkPolicy'];
+        $playerOptions['rtl'] = $this->options['rtlMode'];
+
+        return array_merge($playerOptions, $this->options["colorScheme"]);
+    }
+
 }
 ?>
