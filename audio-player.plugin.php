@@ -237,9 +237,21 @@ class HBAudioPlayer extends Plugin
                             $ui->colourselector->$optn->id = $optn."color";
                     }
                     // TODO: Find a way to easily list silo locations
-                    if (Plugins::is_loaded('Habari Media Silo')) {
+                    if ( Plugins::is_loaded( 'Habari Media Silo' ) ) {
                         // Get a list of all the directories available in the loaded Habari Silo
-                        Utils::debug(Media::dir('Habari'));
+                        $dirs = array(Site::get_url( 'habari' ).'/files');    // This will always be the top level dir for Habari Media Silo
+                        $silo_dirs = Media::dir( 'Habari' );
+                        // TODO: change this to better recurse through all sub-dirs
+                        foreach ( $silo_dirs as $silo ) {
+                            $dirs[] = str_replace( 'Habari', Site::get_url( 'habari' ).'/files', $silo->path );
+                            $subdirs = Media::dir( $silo->path );
+                            if ( !empty( $subdirs ) ) {
+                                foreach ($subdirs as $subdir) {
+                                    $dirs[] = str_replace( 'Habari', Site::get_url( 'habari' ).'/files', $subdir->path );
+                                }
+                            }
+                        }
+                        Utils::debug($dirs);
                     }
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
                         $ui->genfs->append( 'text', 'defaultPath', 'null:null', _t( 'Default Audio Path:' ), 'hbap_text' );
