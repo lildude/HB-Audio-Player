@@ -237,6 +237,10 @@ class HBAudioPlayer extends Plugin
                             $ui->colourselector->$optn->id = $optn."color";
                     }
                     // TODO: Find a way to easily list silo locations
+                    if (Plugins::is_loaded('Habari Media Silo')) {
+                        // Get a list of all the directories available in the loaded Habari Silo
+                        Utils::debug(Media::dir('Habari'));
+                    }
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
                         $ui->genfs->append( 'text', 'defaultPath', 'null:null', _t( 'Default Audio Path:' ), 'hbap_text' );
                             $ui->genfs->defaultPath->value = $this->options['defaultPath'];
