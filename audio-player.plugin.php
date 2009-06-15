@@ -48,7 +48,7 @@ class HBAudioPlayer extends Plugin
             'url' => 'http://www.lildude.co.uk/projects/hb-audio-player',
             'author' => 'Colin Seymour',
             'authorurl' => 'http://www.colinseymour.co.uk/',
-            'version' => '0.1',
+            'version' => '0.1r11',
             'description' => 'HB Audio Player is a highly configurable but simple mp3 player for all your audio needs.',
             'license' => 'Apache License 2.0',
             'guid' => '4031D1D4-5409-11DE-B1F6-65BE56D89593',
@@ -327,9 +327,10 @@ class HBAudioPlayer extends Plugin
                         $ui->appfs->append( 'checkbox', 'rtlMode', 'null:null', _t( 'Switch to RTL Layout' ), 'hbap_checkbox' );
                             $ui->appfs->rtlMode->value = $this->options['rtlMode'];
                             $ui->appfs->rtlMode->helptext = _t( 'Select this to switch the player layout to RTL mode (right to left) for Arabic and Hebrew language blogs.' );
-
+                         
                     $ui->append( 'fieldset', 'feedfs', _t( 'Feed' ) );
                         $ui->feedfs->append( 'select', 'feedAlt', 'null:null', _t( 'Alternate Content') );
+                            $ui->feedfs->feedAlt->id = 'feedAlt';
                             $ui->feedfs->feedAlt->template = 'hbap_select';
                             $ui->feedfs->feedAlt->value = $this->options['feedAlt'];
                             $ui->feedfs->feedAlt->options = array( 'download' => 'Download Link', 'nothing' => 'Nothing', 'custom' => 'Custom' );
@@ -340,6 +341,10 @@ class HBAudioPlayer extends Plugin
                         $ui->feedfs->append( 'text', 'feedCustom', 'null:null', _t( 'Custom alternate content' ), 'hbap_text' );
                             $ui->feedfs->feedCustom->value = $this->options['feedCustom'];
                             $ui->feedfs->feedCustom->pct = 80;
+                            $ui->feedfs->feedCustom->id = 'feedCustom';
+                            if ( $this->options['feedAlt'] != 'cusom' ) {
+                                $ui->feedfs->feedCustom->disabled = TRUE;
+                            }
 
                     $ui->append( 'fieldset', 'advfs', _t( 'Advanced' ) );
                         $ui->advfs->append( 'text', 'initVol', 'null:null', _t( 'Initial Volume' ), 'hbap_text' );
@@ -420,6 +425,7 @@ class HBAudioPlayer extends Plugin
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker-src/js/colorpicker.js', 'jquery.colorpicker', 'jquery' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js?'.time(), 'audioplayer-admin', 'jquery.colorpicker' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
+            // TODO: move this into the body of the admin form and populate the options using javascript - this should ensure the player is updated when I save the options.
             Stack::add( 'admin_header_javascript', "
                 AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".$this->php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
         }
