@@ -131,7 +131,8 @@ class HBAudioPlayer extends Plugin
     {
         if( Plugins::id_from_file( $file ) == Plugins::id_from_file( __FILE__ ) ) {
             $defOptions = array(
-                'defaultPath'  => Site::get_url('habari').'/files',
+                'defaultPath'  => Site::get_url('user').'/files/',
+                'customPath' => '',
                 'width'         => 300,
                 'colorScheme'  => array (
                                     'bg'                => 'E5E5E5',
@@ -236,28 +237,29 @@ class HBAudioPlayer extends Plugin
                             $ui->colourselector->$optn->value = '#'.$value;
                             $ui->colourselector->$optn->id = $optn."color";
                     }
-                    // TODO: Find a way to easily list silo locations
+
                     if ( Plugins::is_loaded( 'Habari Media Silo' ) ) {
                         // Get a list of all the directories available in the loaded Habari Silo
-                        $dirs = array(Site::get_url( 'habari' ).'/files');    // This will always be the top level dir for Habari Media Silo
-                        $silo_dirs = Media::dir( 'Habari' );
-                        // TODO: change this to better recurse through all sub-dirs
-                        foreach ( $silo_dirs as $silo ) {
-                            $dirs[] = str_replace( 'Habari', Site::get_url( 'habari' ).'/files', $silo->path );
-                            $subdirs = Media::dir( $silo->path );
-                            if ( !empty( $subdirs ) ) {
-                                foreach ($subdirs as $subdir) {
-                                    $dirs[] = str_replace( 'Habari', Site::get_url( 'habari' ).'/files', $subdir->path );
-                                }
-                            }
-                        }
-                        Utils::debug($dirs);
+                        $dirs = $this->siloDirs();
+                        $dirs['custom'] = 'Custom';
                     }
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
-                        $ui->genfs->append( 'text', 'defaultPath', 'null:null', _t( 'Default Audio Path:' ), 'hbap_text' );
-                            $ui->genfs->defaultPath->value = $this->options['defaultPath'];
+                        $ui->genfs->append( 'select', 'defaultPath', 'null:null', _t( 'Default Audio Path' ) );
+                            $ui->genfs->defaultPath->template = 'hbap_select';
+                            $ui->genfs->defaultPath->id = 'defaultPath';
                             $ui->genfs->defaultPath->pct = 80;
+                            $ui->genfs->defaultPath->value = $this->options['defaultPath'];
                             $ui->genfs->defaultPath->helptext = _t( 'This is the default location for your audio files. When you use the [audio] syntax and don\'t provide an absolute URL for the mp3 file (the full URL including "http://") Audio Player will automatically look for the file in this location. You can set this to a folder located inside your blog folder structure or, alternatively, if you wish to store your audio files outside your blog (maybe even on a different server), choose "Custom" from the drop down and enter the absolute URL to that location.' );
+                            $ui->genfs->defaultPath->options = $dirs;
+
+
+                       $ui->genfs->append( 'text', 'customPath', 'null:null', _t( 'Custom Audio Path:' ), 'hbap_text' );
+                            $ui->genfs->customPath->value = $this->options['customPath'];
+                            $ui->genfs->customPath->pct = 80;
+                            $ui->genfs->customPath->id = 'customPath';
+                            if ( $this->options['defaultPath'] != 'custom' ) {
+                                $ui->genfs->customPath->disabled = TRUE;
+                            }
 
                     $ui->append( 'fieldset', 'appfs', _t( 'Appearance' ) );
                         $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width' ), 'hbap_text' );
@@ -505,6 +507,46 @@ class HBAudioPlayer extends Plugin
         $playerOptions['rtl'] = $this->options['rtlMode'];
 
         return array_merge($playerOptions, $this->options["colorScheme"]);
+    }
+
+    function directoryToArray($directory, $recursive) {
+        $array_items = array();
+        //$handle = opendir( $directory );
+        //if ( $handle ) {
+            //while (false !== ( $file = readdir( $handle ) ) ) {
+                //if ( $file != "." && $file != ".." ) {
+                    if ( is_dir( $directory. "/" . $file ) ) {
+                        if( $recursive ) {
+                            $array_items = array_merge( $array_items, directoryToArray( $directory. "/" . $file, $recursive ) );
+                        }
+                        $file = $directory . "/" . $file;
+                        $array_items[] = preg_replace( "/\/\//si", "/", $file );
+                    } else {
+                        $file = $directory . "/" . $file;
+                        $array_items[] = preg_replace( "/\/\//si", "/", $file );
+                    }
+                //}
+           // }
+           // closedir( $handle );
+        //}
+        return $array_items;
+    }
+
+    private function siloDirs() {
+        // Get a list of all the directories available in the loaded Habari Silo
+        $user_path = HABARI_PATH . '/' . Site::get_path('user') . '/files/'; // Default Habari silo path
+        $user_url = Site::get_url('user').'/files/';    // Default Habari Silo URL
+        $dirs = array($user_url => $user_url);
+        $objects = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($user_path), RecursiveIteratorIterator::SELF_FIRST);
+        foreach( $objects as $name => $object ){
+            if ( $object->isDir() ) {
+                if ( $object->getFilename() != '.deriv' ) {     // Exclude the .deriv dirs
+                    $newname = str_replace($user_path, $user_url, $name).'/';
+                    $dirs[$newname] = $newname;
+                }
+            }
+        }
+        return $dirs;
     }
 
 }
