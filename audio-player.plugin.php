@@ -289,7 +289,7 @@ class HBAudioPlayer extends Plugin
                                                     'skip'              => _t( 'Next/Previous Buttons' )
                                                     );
                             $themeColorStr = '';
-                            foreach($this->getThemeColors() as $themeColor) {
+                            foreach(self::getThemeColors() as $themeColor) {
                                 $themeColorStr .= "<li style='background:#{$themeColor}' title='#{$themeColor}'>#{$themeColor}</li>";
                             }
 
@@ -550,7 +550,7 @@ class HBAudioPlayer extends Plugin
      * @return array of colors from current theme
      */
     
-    function getThemeColors() {
+    private static function getThemeColors() {
             $themeCssFile = Themes::get_active()->theme_dir.'style.css';
             $theme_css = implode('', file( $themeCssFile ) );
             preg_match_all('/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', strtoupper($theme_css), $matches);
