@@ -120,6 +120,7 @@ class HBAudioPlayer extends Plugin
                         <p><a href="'.URL::get( 'admin', array( 'page' => 'plugins', 'configure' => $this->plugin_id(), 'configaction' => 'Configure' ) ) . '#plugin_options">Configure</a> HB Audio Player now.</p>
                        ');
     }
+
     /**
      * Plugin activation
      *
@@ -240,9 +241,10 @@ class HBAudioPlayer extends Plugin
 
                     if ( Plugins::is_loaded( 'Habari Media Silo' ) ) {
                         // Get a list of all the directories available in the loaded Habari Silo
-                        $dirs = $this->siloDirs();
+                        $dirs = self::siloDirs();
                         $dirs['custom'] = 'Custom';
                     }
+                    
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
                         $ui->genfs->append( 'select', 'defaultPath', 'null:null', _t( 'Default Audio Path' ) );
                             $ui->genfs->defaultPath->template = 'hbap_select';
@@ -260,7 +262,7 @@ class HBAudioPlayer extends Plugin
                             if ( $this->options['defaultPath'] != 'custom' ) {
                                 $ui->genfs->customPath->disabled = TRUE;
                             }
-
+                    
                     $ui->append( 'fieldset', 'appfs', _t( 'Appearance' ) );
                         $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width' ), 'hbap_text' );
                             $ui->appfs->width->value = $this->options['width'];
@@ -299,10 +301,12 @@ class HBAudioPlayer extends Plugin
                                                             <ul>'.$themeColorStr.'</ul></div>';
                         $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
                         // TODO: Get the player to update when saving the options
-                            $ui->appfs->colour_selector_demo->append( 'static', 'demo', '<div id="demoplayer">Audio Player</div>
-                                                                                        <script type="text/javascript">
-                                                                                        AudioPlayer.embed("demoplayer", {demomode:"yes"});
-                                                                                        </script>');
+                            $ui->appfs->colour_selector_demo->append( 'static', 'demo', '
+                                <div id="demoplayer">Audio Player</div>
+                                <script type="text/javascript">
+                                AudioPlayer.embed("demoplayer", {demomode:"yes"});
+                                </script>
+                            ');
                         $ui->appfs->append( 'text', 'cs_pagebg', 'null:null', _t( 'Page Background' ), 'hbap_text' );
                             $ui->appfs->cs_pagebg->value = '#'.$this->options['colorScheme']['pagebg'];
                             $ui->appfs->cs_pagebg->id = 'cs_pagebg';
@@ -327,7 +331,7 @@ class HBAudioPlayer extends Plugin
                         $ui->appfs->append( 'checkbox', 'rtlMode', 'null:null', _t( 'Switch to RTL Layout' ), 'hbap_checkbox' );
                             $ui->appfs->rtlMode->value = $this->options['rtlMode'];
                             $ui->appfs->rtlMode->helptext = _t( 'Select this to switch the player layout to RTL mode (right to left) for Arabic and Hebrew language blogs.' );
-                         
+                    
                     $ui->append( 'fieldset', 'feedfs', _t( 'Feed' ) );
                         $ui->feedfs->append( 'select', 'feedAlt', 'null:null', _t( 'Alternate Content') );
                             $ui->feedfs->feedAlt->id = 'feedAlt';
@@ -425,9 +429,8 @@ class HBAudioPlayer extends Plugin
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker-src/js/colorpicker.js', 'jquery.colorpicker', 'jquery' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js?'.time(), 'audioplayer-admin', 'jquery.colorpicker' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
-            // TODO: move this into the body of the admin form and populate the options using javascript - this should ensure the player is updated when I save the options.
             Stack::add( 'admin_header_javascript', "
-                AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".$this->php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
+                AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
         }
     }
 
@@ -462,8 +465,82 @@ class HBAudioPlayer extends Plugin
     public function theme_header( $theme )
     {
         $this->options = Options::get( self::OPTNAME );
+        Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
+        Stack::add( 'template_header_javascript', "
+                AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
+
     }
 
+    /**
+     * Format post content. Calls SchnazzyArchives::schnazzyarchive.
+     *
+     * We use Format here instead of filter_post_content_out to ensure the code isn't actually replace
+     * until the page is displayed.  This prevents errors or the display of rubbish in the event the
+     * plugin is deactivated.
+     *
+     * @access public
+     * @return void
+     */
+    public function action_init()
+    {
+        Format::apply('processContent', 'post_content_out');
+        Format::apply('processContent', 'post_content_summary');
+        Format::apply('processContent', 'post_content_more');
+        Format::apply('processContent', 'post_content_excerpt');
+        Format::apply('processContent', 'post_content_atom');
+    }
+
+    /**
+     * Replace any instance of the [audio:] tag with the media player.
+     *
+     * We do this here so we can use class instance variables and private functions.
+     *
+     * @access public
+     * @param string $content
+     * @return string
+     */
+    public function filter_processContent ( $content ) {
+        return preg_replace_callback('#\[audio:(([^]]+))\]#', array($this, 'insertPlayer'), $content);
+    }
+
+    public function insertPlayer($matches) {
+        static $playerID = 0;
+
+        $data = preg_split("/[\|]/", $matches[1]);
+        $files = array();
+
+        // Create an array of files to load in player
+        foreach ( explode( ",", trim($data[0]) ) as $afile ) {
+            $afile = trim($afile);
+            // Get absolute URLs for relative ones
+            if (!self::isAbsoluteURL($afile)) {
+                $afile = $this->options['defaultPath'] . $afile;
+            }
+
+            array_push( $files, $afile );
+
+            // Add source file to instances already added to the post
+            //array_push( $this->instances, $afile );
+        }
+
+        $playerOptions = array();
+
+        $playerOptions['soundFile'] = ( $this->options['encode'] ) ? self::encodeSource( implode( ",", $files ) ): implode( ",", $files );
+
+        for ($i = 1; $i < count($data); $i++) {
+            $pair = explode("=", $data[$i]);
+            $playerOptions[trim($pair[0])] = trim($pair[1]);
+        }
+
+        $playerElementID = "audioplayer_$playerID";
+        $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
+        $output .= '<script type="text/javascript">';
+        $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
+        $output .= '</script></p>';
+        $playerID++;
+        
+        return $output;
+    }
 
     /******************** Helper Functions ************************************/
 
@@ -485,7 +562,7 @@ class HBAudioPlayer extends Plugin
      * @return formatted string
      * @param $object Object containing the options to format
      */
-    function php2js($object) {
+    private static function php2js($object) {
             $js_options = '{';
             $separator = "";
             $real_separator = ",";
@@ -515,44 +592,136 @@ class HBAudioPlayer extends Plugin
         return array_merge($playerOptions, $this->options["colorScheme"]);
     }
 
-    function directoryToArray($directory, $recursive) {
-        $array_items = array();
-        //$handle = opendir( $directory );
-        //if ( $handle ) {
-            //while (false !== ( $file = readdir( $handle ) ) ) {
-                //if ( $file != "." && $file != ".." ) {
-                    if ( is_dir( $directory. "/" . $file ) ) {
-                        if( $recursive ) {
-                            $array_items = array_merge( $array_items, directoryToArray( $directory. "/" . $file, $recursive ) );
-                        }
-                        $file = $directory . "/" . $file;
-                        $array_items[] = preg_replace( "/\/\//si", "/", $file );
-                    } else {
-                        $file = $directory . "/" . $file;
-                        $array_items[] = preg_replace( "/\/\//si", "/", $file );
-                    }
-                //}
-           // }
-           // closedir( $handle );
-        //}
-        return $array_items;
-    }
+    /**
+     * Returns an array of URLs correlating to each directory found in the
+     * default Habari Silo path in the form:
+     *
+     * URL => "Habari Silo:/path/to/dir/"
+     *
+     * This is for use in a <select> form element.
+     * 
+     * @return array
+     */
 
-    private function siloDirs() {
+    private static function siloDirs()
+    {
         // Get a list of all the directories available in the loaded Habari Silo
         $user_path = HABARI_PATH . '/' . Site::get_path('user') . '/files/'; // Default Habari silo path
-        $user_url = Site::get_url('user').'/files/';    // Default Habari Silo URL
-        $dirs = array($user_url => $user_url);
+        $user_url = Site::get_url('user').'/files/';                         // Default Habari Silo URL
+        $dirs = array($user_url => 'Habari Silo:/');
         $objects = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($user_path), RecursiveIteratorIterator::SELF_FIRST);
         foreach( $objects as $name => $object ){
             if ( $object->isDir() ) {
-                if ( $object->getFilename() != '.deriv' ) {     // Exclude the .deriv dirs
-                    $newname = str_replace($user_path, $user_url, $name).'/';
-                    $dirs[$newname] = $newname;
+                if ( $object->getFilename() != '.deriv' ) {                 // Exclude the .deriv dirs created by Habari Silo plugin
+                    $newname = str_replace($user_path, '', $name).'/';
+                    $newurl = str_replace($user_path, $user_url, $name).'/';
+                    $dirs[$newurl] = 'Habari Silo:/'.$newname;
                 }
             }
         }
         return $dirs;
+    }
+
+    /**
+     * @return true if $path is absolute
+     * @param $path Object
+     */
+    private static function isAbsoluteURL($path)
+    {
+        if (strpos($path, "http://") === 0) {
+            return true;
+        }
+        if (strpos($path, "https://") === 0) {
+            return true;
+        }
+        if (strpos($path, "ftp://") === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Encodes the given string
+     * @return the encoded string
+     * @param $string String the string to encode
+     */
+    private static function encodeSource($string)
+    {
+        $source = utf8_decode($string);
+        $ntexto = "";
+        $codekey = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+        for ($i = 0; $i < strlen($string); $i++) {
+            $ntexto .= substr("0000".base_convert(ord($string{$i}), 10, 2), -8);
+        }
+        $ntexto .= substr("00000", 0, 6-strlen($ntexto)%6);
+        $string = "";
+        for ($i = 0; $i < strlen($ntexto)-1; $i = $i + 6) {
+            $string .= $codekey{intval(substr($ntexto, $i, 6), 2)};
+        }
+        return $string;
+    }
+
+    /**
+     * Generic player instance function (returns player widget code to insert)
+     * @return String the html code to insert
+     * @param $source String list of mp3 file urls to load in player
+     * @param $options Object[optional] options to load in player
+     */
+    function getPlayer($source, $playerOptions = array())
+    { /*
+        // Get next player ID
+        $this->playerID++;
+
+        // Add source to options and encode if necessary
+        $playerOptions["soundFile"] = $source;
+        if ($this->options["encodeSource"]) {
+            $playerOptions["soundFile"] = $this->encodeSource($source);
+        }
+
+        if (is_feed()) {
+            // We are in a feed so use RSS alternate content option
+            switch ( $this->options["rssAlternate"] ) {
+
+            case "download":
+                    // Get filenames from path and output a link for each file in the sequence
+                    $files = explode(",", $source);
+                    $links = "";
+                    for ($i = 0; $i < count($files); $i++) {
+                            $fileparts = explode("/", $files[$i]);
+                            $fileName = $fileparts[count($fileparts)-1];
+                            $links .= '<a href="' . $files[$i] . '">' . _t( 'Download audio file' ) . ' (' . $fileName . ')</a><br />';
+                    }
+                    return $links;
+                    break;
+
+            case "nothing":
+                    return "";
+                    break;
+
+            case "custom":
+                    return $this->options["rssCustomAlternate"];
+                    break;
+
+            }
+        } else {
+            // Not in a feed so return player widget
+            $playerElementID = "audioplayer_" . $this->playerID;
+            $playerCode = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(__('Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.', $this->textDomain), 'http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash&amp;promoid=BIOW');
+            $playerCode .= '</span><script type="text/javascript">';
+            $playerCode .= 'AudioPlayer.embed("' . $playerElementID . '", ' . self::php2js($playerOptions) . ');';
+            $playerCode .= '</script></p>';
+            return $playerCode;
+        }
+     
+     */
+    }
+
+}
+
+class HBAudioPlayerFormat extends Format {
+    public function processContent( $content )
+    {
+        return Plugins::filter( 'processContent', $content );
     }
 
 }
