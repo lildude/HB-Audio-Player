@@ -504,6 +504,7 @@ class HBAudioPlayer extends Plugin
     }
 
     public function insertPlayer($matches) {
+        $this->options = Options::get( self::OPTNAME );
         static $playerID = 0;
 
         $data = preg_split("/[\|]/", $matches[1]);
@@ -518,26 +519,44 @@ class HBAudioPlayer extends Plugin
             }
 
             array_push( $files, $afile );
-
-            // Add source file to instances already added to the post
-            //array_push( $this->instances, $afile );
         }
-
-        $playerOptions = array();
-
-        $playerOptions['soundFile'] = ( $this->options['encode'] ) ? self::encodeSource( implode( ",", $files ) ): implode( ",", $files );
-
-        for ($i = 1; $i < count($data); $i++) {
-            $pair = explode("=", $data[$i]);
-            $playerOptions[trim($pair[0])] = trim($pair[1]);
+        if ( Controller::get_var('entire_match') == 'atom/1') {
+            // We're processing the atom feed
+            switch ( $this->options['feedAlt'] ) {
+                case "nothing":
+                    $output = '';
+                    break;
+                case "download":
+                    $output = '';
+                    for ($i = 0; $i < count($files); $i++) {
+                        $fileparts = explode("/", $files[$i]);
+                        $fileName = $fileparts[count($fileparts)-1];
+                        $output .= '<a href="' . $files[$i] . '">' . _t('Download audio file') . ' (' . $fileName . ')</a><br />';
+                    }
+                    break;
+                case "custom":
+                    $output = $this->options['feedCustom'];
+                    break;
+            }
         }
+        else {
+            // We're processing normal content
+            $playerOptions = array();
 
-        $playerElementID = "audioplayer_$playerID";
-        $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
-        $output .= '<script type="text/javascript">';
-        $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
-        $output .= '</script></p>';
-        $playerID++;
+            $playerOptions['soundFile'] = ( $this->options['encode'] ) ? self::encodeSource( implode( ",", $files ) ): implode( ",", $files );
+
+            for ($i = 1; $i < count($data); $i++) {
+                $pair = explode("=", $data[$i]);
+                $playerOptions[trim($pair[0])] = trim($pair[1]);
+            }
+
+            $playerElementID = "audioplayer_$playerID";
+            $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
+            $output .= '<script type="text/javascript">';
+            $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
+            $output .= '</script></p>';
+            $playerID++;
+        }
         
         return $output;
     }
