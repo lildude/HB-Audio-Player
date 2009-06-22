@@ -33,6 +33,25 @@ class HBAudioPlayer extends Plugin
 
     private $options = array();
     const OPTNAME = 'hbaudioplayer__options';
+    private static $defaultColors = array (
+                                    'bg'                => 'E5E5E5',
+                                    'text'              => '333333',
+                                    'leftbg'            => 'CCCCCC',
+                                    'lefticon'          => '333333',
+                                    'volslider'         => '666666',
+                                    'voltrack'          => 'FFFFFF',
+                                    'rightbg'           => 'B4B4B4',
+                                    'rightbghover'      => '999999',
+                                    'righticon'         => '333333',
+                                    'righticonhover'    => 'FFFFFF',
+                                    'track'             => 'FFFFFF',
+                                    'loader'            => '009900',
+                                    'border'            => 'CCCCCC',
+                                    'tracker'           => 'DDDDDD',
+                                    'skip'              => '666666',
+                                    'pagebg'            => 'FFFFFF',
+                                    'transparentpagebg' => TRUE
+                                );
 
     /**
      * Plugin information
@@ -135,25 +154,7 @@ class HBAudioPlayer extends Plugin
                 'defaultPath'  => Site::get_url('user').'/files/',
                 'customPath' => '',
                 'width'         => 300,
-                'colorScheme'  => array (
-                                    'bg'                => 'E5E5E5',
-                                    'text'              => '333333',
-                                    'leftbg'            => 'CCCCCC',
-                                    'lefticon'          => '333333',
-                                    'volslider'         => '666666',
-                                    'voltrack'          => 'FFFFFF',
-                                    'rightbg'           => 'B4B4B4',
-                                    'rightbghover'      => '999999',
-                                    'righticon'         => '333333',
-                                    'righticonhover'    => 'FFFFFF',
-                                    'track'             => 'FFFFFF',
-                                    'loader'            => '009900',
-                                    'border'            => 'CCCCCC',
-                                    'tracker'           => 'DDDDDD',
-                                    'skip'              => '666666',
-                                    'pagebg'            => 'FFFFFF',
-                                    'transparentpagebg' => TRUE
-                                ),
+                'colorScheme'  => $this->defaultColors,
                 'enableAnimation' => TRUE,
                 'showRemaining' => FALSE,
                 'disableTrackInformation' => FALSE,
@@ -163,7 +164,8 @@ class HBAudioPlayer extends Plugin
                 'initVol' => 60,
                 'buffer' => 5,
                 'chkPolicy' => FALSE,
-                'encode' => TRUE
+                'encode' => TRUE,
+                'resetColors' => FALSE
                         );
 
             $this->options = Options::get( self::OPTNAME );
@@ -298,7 +300,10 @@ class HBAudioPlayer extends Plugin
                                                           <span id="themecolor-btn">'._t( 'Theme Colours' ). '</span>
                                                           <div id="themecolor">
                                                             <span>'._t( 'Theme Colours' ).'</span>
-                                                            <ul>'.$themeColorStr.'</ul></div>';
+                                                            <ul>'.$themeColorStr.'</ul></div><input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Colors' ).'">';
+                        $ui->appfs->append( 'hidden', 'resetColors', 'null:null');
+                            $ui->appfs->resetColors->value = $this->options['resetColors'];
+                            $ui->appfs->resetColors->id = 'resetColors';
                         $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
                         // TODO: Get the player to update when saving the options
                             $ui->appfs->colour_selector_demo->append( 'static', 'demo', '
@@ -314,11 +319,9 @@ class HBAudioPlayer extends Plugin
                                 $ui->appfs->cs_pagebg->disabled = TRUE;
                             }
                             $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
-                        // TODO: Need to put this inline with the pagebg somehow.
                         $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
                             $ui->appfs->cs_transparentpagebg->value = $this->options['colorScheme']['transparentpagebg'];
                             $ui->appfs->cs_transparentpagebg->id = 'cs_transparentpagebg';
-                        // TODO: Add "Reset colours button
                         $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation' ), 'hbap_checkbox' );
                             $ui->appfs->enableAnimation->value = $this->options['enableAnimation'];
                             $ui->appfs->enableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.');
@@ -403,11 +406,17 @@ class HBAudioPlayer extends Plugin
                         } else {
                             $newOptions[$option->name] = $option->value;
                         }
-                    }                    
+                    }
+                    if ( $option->name == 'resetColors' && $option->value == TRUE ) {
+                        $newOptions['colorScheme'] = self::$defaultColors;
+                        $newOptions['resetColors'] = FALSE;
+                    }
+
                 }
             }
         }
         Options::set( self::OPTNAME, $newOptions );
+        Utils::debug($newOptions);
      }
 
     /**
@@ -549,7 +558,7 @@ class HBAudioPlayer extends Plugin
                 $pair = explode("=", $data[$i]);
                 $playerOptions[trim($pair[0])] = trim($pair[1]);
             }
-
+            // FIXME: The comment here is shown on Safari
             $playerElementID = "audioplayer_$playerID";
             $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
             $output .= '<script type="text/javascript">';
