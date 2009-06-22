@@ -300,7 +300,7 @@ class HBAudioPlayer extends Plugin
                                                           <span id="themecolor-btn">'._t( 'Theme Colours' ). '</span>
                                                           <div id="themecolor">
                                                             <span>'._t( 'Theme Colours' ).'</span>
-                                                            <ul>'.$themeColorStr.'</ul></div><input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Colors' ).'">';
+                                                            <ul>'.$themeColorStr.'</ul></div><input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Color Scheme' ).'">';
                         $ui->appfs->append( 'hidden', 'resetColors', 'null:null');
                             $ui->appfs->resetColors->value = $this->options['resetColors'];
                             $ui->appfs->resetColors->id = 'resetColors';
@@ -309,6 +309,8 @@ class HBAudioPlayer extends Plugin
                             $ui->appfs->colour_selector_demo->append( 'static', 'demo', '
                                 <div id="demoplayer">Audio Player</div>
                                 <script type="text/javascript">
+                                AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js($this->getPlayerOptions()).');
+
                                 AudioPlayer.embed("demoplayer", {demomode:"yes"});
                                 </script>
                             ');
@@ -416,7 +418,6 @@ class HBAudioPlayer extends Plugin
             }
         }
         Options::set( self::OPTNAME, $newOptions );
-        Utils::debug($newOptions);
      }
 
     /**
@@ -438,8 +439,8 @@ class HBAudioPlayer extends Plugin
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker-src/js/colorpicker.js', 'jquery.colorpicker', 'jquery' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js?'.time(), 'audioplayer-admin', 'jquery.colorpicker' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
-            Stack::add( 'admin_header_javascript', "
-                AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
+            //Stack::add( 'admin_header_javascript', "
+            //    AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
         }
     }
 
@@ -512,6 +513,14 @@ class HBAudioPlayer extends Plugin
         return preg_replace_callback('#\[audio:(([^]]+))\]#', array($this, 'insertPlayer'), $content);
     }
 
+	/**
+	 * Insert player or other code into post.
+	 *
+	 * @todo Apply different formatting for excerpts
+	 * @todo Apply different formatting for summary
+	 * @todo Apply different formatting for more
+	 *
+	 */
     public function insertPlayer($matches) {
         $this->options = Options::get( self::OPTNAME );
         static $playerID = 0;
