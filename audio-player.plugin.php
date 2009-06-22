@@ -482,7 +482,7 @@ class HBAudioPlayer extends Plugin
     }
 
     /**
-     * Format post content. Calls SchnazzyArchives::schnazzyarchive.
+     * Format post content. 
      *
      * We use Format here instead of filter_post_content_out to ensure the code isn't actually replace
      * until the page is displayed.  This prevents errors or the display of rubbish in the event the
@@ -493,11 +493,11 @@ class HBAudioPlayer extends Plugin
      */
     public function action_init()
     {
-        Format::apply('processContent', 'post_content_out');
-        Format::apply('processContent', 'post_content_summary');
-        Format::apply('processContent', 'post_content_more');
-        Format::apply('processContent', 'post_content_excerpt');
-        Format::apply('processContent', 'post_content_atom');
+        Format::apply('processContentOut', 'post_content_out');
+        Format::apply('processContentSummary', 'post_content_summary');
+        Format::apply('processContentMore', 'post_content_more');
+        Format::apply('processContentExcerpt', 'post_content_excerpt');
+        Format::apply('processContentAtom', 'post_content_atom');
     }
 
     /**
@@ -509,22 +509,100 @@ class HBAudioPlayer extends Plugin
      * @param string $content
      * @return string
      */
-    public function filter_processContent ( $content ) {
-        return preg_replace_callback('#\[audio:(([^]]+))\]#', array($this, 'insertPlayer'), $content);
+    public function filter_processContent ( $content, $function )
+    {
+        return preg_replace_callback('#\[audio:(([^]]+))\]#', array($this, 'insertPlayer'.$function), $content);
     }
 
-	/**
-	 * Insert player or other code into post.
-	 *
-	 * @todo Apply different formatting for excerpts
-	 * @todo Apply different formatting for summary
-	 * @todo Apply different formatting for more
-	 *
-	 */
-    public function insertPlayer($matches) {
+    /**
+     * Insert player into post_content_out.
+     */
+    public function insertPlayerOut( $matches )
+    {
         $this->options = Options::get( self::OPTNAME );
         static $playerID = 0;
+        list( $files, $data ) = $this->getFileData( $matches );
 
+        $playerOptions = array();
+        $playerOptions['soundFile'] = ( $this->options['encode'] ) ? self::encodeSource( implode( ",", $files ) ): implode( ",", $files );
+
+        for ($i = 1; $i < count($data); $i++) {
+            $pair = explode("=", $data[$i]);
+            $playerOptions[trim($pair[0])] = trim($pair[1]);
+        }
+        // FIXME: The comment here is shown on Safari
+        $playerElementID = "audioplayer_$playerID";
+        $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
+        $output .= '<script type="text/javascript">';
+        $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
+        $output .= '</script></p>';
+        $playerID++;
+        
+        return $output;
+    }
+
+    /**
+     * Insert player into post_content_atom.
+     */
+    public function insertPlayerAtom( $matches )
+    {
+        $this->options = Options::get( self::OPTNAME );
+        list( $files, $data ) = $this->getFileData( $matches );
+
+        switch ( $this->options['feedAlt'] ) {
+            case "nothing":
+                $output = '';
+                break;
+            case "download":
+                $output = '';
+                for ($i = 0; $i < count($files); $i++) {
+                    $fileparts = explode("/", $files[$i]);
+                    $fileName = $fileparts[count($fileparts)-1];
+                    $output .= '<a href="' . $files[$i] . '">' . _t('Download audio file') . ' (' . $fileName . ')</a><br />';
+                }
+                break;
+            case "custom":
+                $output = $this->options['feedCustom'];
+                break;
+        }
+        return $output;
+    }
+
+    /**
+     * Insert player into post_content_excerpt.
+     * @todo Add post_content_excerpt config and output functionality
+     */
+    public function insertPlayerExcerpt( $matches )
+    {
+        $this->options = Options::get( self::OPTNAME );
+        list( $files, $data ) = $this->getFileData( $matches );
+        return 'Excerpt';
+    }
+
+    /**
+     * Insert player into post_content_more.
+     * @todo Add post_content_more config and output functionality
+     */
+    public function insertPlayerMore( $matches )
+    {
+        $this->options = Options::get( self::OPTNAME );
+        list( $files, $data ) = $this->getFileData( $matches );
+        return 'More';
+    }
+
+    /**
+     * Insert player into post_content_summary.
+     * @todo Add post_content_summary config and output functionality
+     */
+    public function insertPlayerSummary( $matches )
+    {
+        $this->options = Options::get( self::OPTNAME );
+        list( $files, $data ) = $this->getFileData( $matches );
+        return 'Summary';
+    }
+
+    function getFileData($matches)
+    {
         $data = preg_split("/[\|]/", $matches[1]);
         $files = array();
 
@@ -535,49 +613,11 @@ class HBAudioPlayer extends Plugin
             if (!self::isAbsoluteURL($afile)) {
                 $afile = $this->options['defaultPath'] . $afile;
             }
-
             array_push( $files, $afile );
         }
-        if ( Controller::get_var('entire_match') == 'atom/1') {
-            // We're processing the atom feed
-            switch ( $this->options['feedAlt'] ) {
-                case "nothing":
-                    $output = '';
-                    break;
-                case "download":
-                    $output = '';
-                    for ($i = 0; $i < count($files); $i++) {
-                        $fileparts = explode("/", $files[$i]);
-                        $fileName = $fileparts[count($fileparts)-1];
-                        $output .= '<a href="' . $files[$i] . '">' . _t('Download audio file') . ' (' . $fileName . ')</a><br />';
-                    }
-                    break;
-                case "custom":
-                    $output = $this->options['feedCustom'];
-                    break;
-            }
-        }
-        else {
-            // We're processing normal content
-            $playerOptions = array();
-
-            $playerOptions['soundFile'] = ( $this->options['encode'] ) ? self::encodeSource( implode( ",", $files ) ): implode( ",", $files );
-
-            for ($i = 1; $i < count($data); $i++) {
-                $pair = explode("=", $data[$i]);
-                $playerOptions[trim($pair[0])] = trim($pair[1]);
-            }
-            // FIXME: The comment here is shown on Safari
-            $playerElementID = "audioplayer_$playerID";
-            $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
-            $output .= '<script type="text/javascript">';
-            $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
-            $output .= '</script></p>';
-            $playerID++;
-        }
-        
-        return $output;
+        return array($files, $data);
     }
+
 
     /******************** Helper Functions ************************************/
 
@@ -587,7 +627,8 @@ class HBAudioPlayer extends Plugin
      * @return array of colors from current theme
      */
     
-    private static function getThemeColors() {
+    private static function getThemeColors()
+    {
             $themeCssFile = Themes::get_active()->theme_dir.'style.css';
             $theme_css = implode('', file( $themeCssFile ) );
             preg_match_all('/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', strtoupper($theme_css), $matches);
@@ -599,7 +640,8 @@ class HBAudioPlayer extends Plugin
      * @return formatted string
      * @param $object Object containing the options to format
      */
-    private static function php2js($object) {
+    private static function php2js($object)
+    {
             $js_options = '{';
             $separator = "";
             $real_separator = ",";
@@ -614,7 +656,8 @@ class HBAudioPlayer extends Plugin
             return $js_options;
     }
 
-    function getPlayerOptions() {
+    function getPlayerOptions()
+    {
         $playerOptions = array();
         $playerOptions['width'] = $this->options['width'];
         $playerOptions['animation'] = $this->options['enableAnimation'];
@@ -697,69 +740,32 @@ class HBAudioPlayer extends Plugin
         }
         return $string;
     }
-
-    /**
-     * Generic player instance function (returns player widget code to insert)
-     * @return String the html code to insert
-     * @param $source String list of mp3 file urls to load in player
-     * @param $options Object[optional] options to load in player
-     */
-    function getPlayer($source, $playerOptions = array())
-    { /*
-        // Get next player ID
-        $this->playerID++;
-
-        // Add source to options and encode if necessary
-        $playerOptions["soundFile"] = $source;
-        if ($this->options["encodeSource"]) {
-            $playerOptions["soundFile"] = $this->encodeSource($source);
-        }
-
-        if (is_feed()) {
-            // We are in a feed so use RSS alternate content option
-            switch ( $this->options["rssAlternate"] ) {
-
-            case "download":
-                    // Get filenames from path and output a link for each file in the sequence
-                    $files = explode(",", $source);
-                    $links = "";
-                    for ($i = 0; $i < count($files); $i++) {
-                            $fileparts = explode("/", $files[$i]);
-                            $fileName = $fileparts[count($fileparts)-1];
-                            $links .= '<a href="' . $files[$i] . '">' . _t( 'Download audio file' ) . ' (' . $fileName . ')</a><br />';
-                    }
-                    return $links;
-                    break;
-
-            case "nothing":
-                    return "";
-                    break;
-
-            case "custom":
-                    return $this->options["rssCustomAlternate"];
-                    break;
-
-            }
-        } else {
-            // Not in a feed so return player widget
-            $playerElementID = "audioplayer_" . $this->playerID;
-            $playerCode = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(__('Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.', $this->textDomain), 'http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash&amp;promoid=BIOW');
-            $playerCode .= '</span><script type="text/javascript">';
-            $playerCode .= 'AudioPlayer.embed("' . $playerElementID . '", ' . self::php2js($playerOptions) . ');';
-            $playerCode .= '</script></p>';
-            return $playerCode;
-        }
-     
-     */
-    }
-
 }
 
 class HBAudioPlayerFormat extends Format {
-    public function processContent( $content )
+    public function processContentOut( $content )
     {
-        return Plugins::filter( 'processContent', $content );
+        return Plugins::filter( 'processContent', $content, 'Out' );
+    }
+    
+    public function processContentAtom( $content )
+    {
+        return Plugins::filter( 'processContent', $content, 'Atom' );
     }
 
+    public function processContentExcerpt( $content )
+    {
+        return Plugins::filter( 'processContent', $content, 'Excerpt' );
+    }
+
+    public function processContentMore( $content )
+    {
+        return Plugins::filter( 'processContent', $content, 'More' );
+    }
+
+    public function processContentSummary( $content )
+    {
+        return Plugins::filter( 'processContent', $content, 'Summary' );
+    }
 }
 ?>
