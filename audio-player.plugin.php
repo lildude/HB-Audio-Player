@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 0.1
+ * @version 1.0 - the one any ONLY pre r3624 release
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -30,7 +30,6 @@
 
 class HBAudioPlayer extends Plugin
 {
-
     private $options = array();
     const OPTNAME = 'hbaudioplayer__options';
     private static $defaultColors = array (
@@ -58,7 +57,6 @@ class HBAudioPlayer extends Plugin
      *
      * @access public
      * @return void
-     * @todo Remove this if running on Habari r3624 or later
      */
     public function info()
     {
@@ -67,7 +65,7 @@ class HBAudioPlayer extends Plugin
             'url' => 'http://www.lildude.co.uk/projects/hb-audio-player',
             'author' => 'Colin Seymour',
             'authorurl' => 'http://www.colinseymour.co.uk/',
-            'version' => '0.1r17',
+            'version' => '1.0',
             'description' => 'HB Audio Player is a highly configurable but simple mp3 player for all your audio needs.',
             'license' => 'Apache License 2.0',
             'guid' => '4031D1D4-5409-11DE-B1F6-65BE56D89593',
@@ -94,7 +92,11 @@ class HBAudioPlayer extends Plugin
      */
     public function help()
     {
-            return _t(' <p>HB Audio Player is a highly configurable but simple mp3 player
+            return _t(' <div style="color:red; font-weight: bold;">THIS IS THE ONE AND ONLY RELEASE OF THIS PLUGIN FOR HABARI 0.6.
+                        THIS HAS NOT BEEN TESTED WITH EARLIER RELEASES AND GIVEN THE CHANGES WITH r3624 (SOON TO BE
+                        0.7) WILL NOT LIKELY BECOME AN OFFICIAL RELEASE FOR HABARI 0.6 AND EARLIER</div>
+                        <br />
+                        <p>HB Audio Player is a highly configurable but simple mp3 player
                         for all your audio needs. You can customise the player\'s
                         colour scheme to match your blog theme, have it automatically
                         show track information from the encoded ID3 tags and more.</p>
@@ -151,22 +153,22 @@ class HBAudioPlayer extends Plugin
     {
         if( Plugins::id_from_file( $file ) == Plugins::id_from_file( __FILE__ ) ) {
             $defOptions = array(
-                'defaultPath'  => Site::get_url('user').'/files/',
-                'customPath' => '',
-                'width'         => 300,
-                'colorScheme'  => $this->defaultColors,
-                'enableAnimation' => TRUE,
-                'showRemaining' => FALSE,
-                'disableTrackInformation' => FALSE,
-                'rtlMode' => FALSE,
-                'feedAlt' => 'nothing',
-                'feedCustom' => '[Audio clip: view full post to listen]',
-                'initVol' => 60,
-                'buffer' => 5,
-                'chkPolicy' => FALSE,
-                'encode' => TRUE,
-                'resetColors' => FALSE
-                        );
+                'defaultPath'               => Site::get_url('user').'/files/',
+                'customPath'                => '',
+                'width'                     => 300,
+                'colorScheme'               => $this->defaultColors,
+                'enableAnimation'           => TRUE,
+                'showRemaining'             => FALSE,
+                'disableTrackInformation'   => FALSE,
+                'rtlMode'                   => FALSE,
+                'feedAlt'                   => 'nothing',
+                'feedCustom'                => '[Audio clip: view full post to listen]',
+                'initVol'                   => 60,
+                'buffer'                    => 5,
+                'chkPolicy'                 => FALSE,
+                'encode'                    => TRUE,
+                'resetColors'               => FALSE
+            );
 
             $this->options = Options::get( self::OPTNAME );
 
