@@ -67,7 +67,7 @@ class HBAudioPlayer extends Plugin
             'url' => 'http://www.lildude.co.uk/projects/hb-audio-player',
             'author' => 'Colin Seymour',
             'authorurl' => 'http://www.colinseymour.co.uk/',
-            'version' => '0.1r11',
+            'version' => '0.1r17',
             'description' => 'HB Audio Player is a highly configurable but simple mp3 player for all your audio needs.',
             'license' => 'Apache License 2.0',
             'guid' => '4031D1D4-5409-11DE-B1F6-65BE56D89593',
@@ -516,8 +516,11 @@ class HBAudioPlayer extends Plugin
 
     /**
      * Insert player into post_content_out.
+	 *
+	 * @param array $matches from callback function
+	 * @return string
      */
-    public function insertPlayerOut( $matches )
+    private function insertPlayerOut( $matches )
     {
         $this->options = Options::get( self::OPTNAME );
         static $playerID = 0;
@@ -543,8 +546,11 @@ class HBAudioPlayer extends Plugin
 
     /**
      * Insert player into post_content_atom.
+	 *
+	 * @param array $matches from callback function
+	 * @return string
      */
-    public function insertPlayerAtom( $matches )
+    private function insertPlayerAtom( $matches )
     {
         $this->options = Options::get( self::OPTNAME );
         list( $files, $data ) = $this->getFileData( $matches );
@@ -570,38 +576,53 @@ class HBAudioPlayer extends Plugin
 
     /**
      * Insert player into post_content_excerpt.
+	 *
+	 * @param array $matches from callback function
+	 * @return string
      * @todo Add post_content_excerpt config and output functionality
      */
-    public function insertPlayerExcerpt( $matches )
+    private function insertPlayerExcerpt( $matches )
     {
         $this->options = Options::get( self::OPTNAME );
         list( $files, $data ) = $this->getFileData( $matches );
-        return 'Excerpt';
+        return NULL;
     }
 
     /**
      * Insert player into post_content_more.
+	 *
+	 * @param array $matches from callback function
+	 * @return string
      * @todo Add post_content_more config and output functionality
      */
-    public function insertPlayerMore( $matches )
+    private function insertPlayerMore( $matches )
     {
         $this->options = Options::get( self::OPTNAME );
         list( $files, $data ) = $this->getFileData( $matches );
-        return 'More';
+        return NULL;
     }
 
     /**
      * Insert player into post_content_summary.
+	 *
+	 * @param array $matches from callback function
+	 * @return string
      * @todo Add post_content_summary config and output functionality
      */
-    public function insertPlayerSummary( $matches )
+    private function insertPlayerSummary( $matches )
     {
         $this->options = Options::get( self::OPTNAME );
         list( $files, $data ) = $this->getFileData( $matches );
-        return 'Summary';
+        return NULL;
     }
 
-    function getFileData($matches)
+	/**
+	 * Extracts filenames, titles and artists from matched data.
+	 * 
+	 * @param array $matches
+	 * @return array
+	 */
+    private function getFileData($matches)
     {
         $data = preg_split("/[\|]/", $matches[1]);
         $files = array();
@@ -624,9 +645,9 @@ class HBAudioPlayer extends Plugin
     /**
      * Parses theme stylesheet and pulls out the colours used
      *
+	 * @access private
      * @return array of colors from current theme
      */
-    
     private static function getThemeColors()
     {
             $themeCssFile = Themes::get_active()->theme_dir.'style.css';
@@ -637,8 +658,9 @@ class HBAudioPlayer extends Plugin
 
     /**
      * Formats a php associative array into a javascript object
-     * @return formatted string
+	 *
      * @param $object Object containing the options to format
+	 * @return string
      */
     private static function php2js($object)
     {
@@ -656,7 +678,15 @@ class HBAudioPlayer extends Plugin
             return $js_options;
     }
 
-    function getPlayerOptions()
+	/**
+	 * Get Player Options from the settings and create an array.
+	 *
+	 * This is used when creating the setup code for the players.
+	 *
+	 * @access private
+	 * @return array
+	 */
+    private function getPlayerOptions()
     {
         $playerOptions = array();
         $playerOptions['width'] = $this->options['width'];
@@ -679,10 +709,10 @@ class HBAudioPlayer extends Plugin
      * URL => "Habari Silo:/path/to/dir/"
      *
      * This is for use in a <select> form element.
-     * 
+     *
+	 * @access private
      * @return array
      */
-
     private static function siloDirs()
     {
         // Get a list of all the directories available in the loaded Habari Silo
@@ -703,8 +733,10 @@ class HBAudioPlayer extends Plugin
     }
 
     /**
-     * @return true if $path is absolute
+	 * Determine if the path provided is a full URL
+	 *
      * @param $path Object
+	 * @return true if $path is absolute
      */
     private static function isAbsoluteURL($path)
     {
@@ -722,8 +754,9 @@ class HBAudioPlayer extends Plugin
 
     /**
      * Encodes the given string
-     * @return the encoded string
-     * @param $string String the string to encode
+	 *
+     * @param string $string String the string to encode
+	 * @return string encoded string
      */
     private static function encodeSource($string)
     {
@@ -742,6 +775,11 @@ class HBAudioPlayer extends Plugin
     }
 }
 
+/**
+ * Formatting class.
+ *
+ * This class actually calls a filter function in the main plugin code.
+ */
 class HBAudioPlayerFormat extends Format {
     public function processContentOut( $content )
     {
