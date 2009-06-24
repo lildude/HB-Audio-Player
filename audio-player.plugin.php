@@ -58,6 +58,7 @@ class HBAudioPlayer extends Plugin
      * @access public
      * @return void
      */
+	/* Removing for post r3624 
     public function info()
     {
         return array (
@@ -71,7 +72,7 @@ class HBAudioPlayer extends Plugin
             'guid' => '4031D1D4-5409-11DE-B1F6-65BE56D89593',
             'copyright' => date( '%Y' )
         );
-    }
+    } */
 
     /**
      * Beacon Support for Update checking
