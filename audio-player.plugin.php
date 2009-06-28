@@ -53,28 +53,6 @@ class HBAudioPlayer extends Plugin
                                 );
 
     /**
-     * Plugin information
-     *
-     * @access public
-     * @return void
-     */
-	/* Removing for post r3624 
-    public function info()
-    {
-        return array (
-            'name' => 'HB AudioPlayer',
-            'url' => 'http://www.lildude.co.uk/projects/hb-audio-player',
-            'author' => 'Colin Seymour',
-            'authorurl' => 'http://www.colinseymour.co.uk/',
-            'version' => '1.0',
-            'description' => 'HB Audio Player is a highly configurable but simple mp3 player for all your audio needs.',
-            'license' => 'Apache License 2.0',
-            'guid' => '4031D1D4-5409-11DE-B1F6-65BE56D89593',
-            'copyright' => date( '%Y' )
-        );
-    } */
-
-    /**
      * Beacon Support for Update checking
      *
      * @access public
