@@ -367,7 +367,6 @@ class HBAudioPlayer extends Plugin
      * @param object $ui
      * @return void
      */
-
      public static function storeOpts ( $ui )
      {
         $newOptions = array();
@@ -452,9 +451,7 @@ class HBAudioPlayer extends Plugin
     {
         $this->options = Options::get( self::OPTNAME );
         Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
-        Stack::add( 'template_header_javascript', "
-                AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
-
+        Stack::add( 'template_header_javascript', "AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
     }
 
     /**
