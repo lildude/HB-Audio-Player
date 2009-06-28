@@ -135,7 +135,7 @@ class HBAudioPlayer extends Plugin
                 'defaultPath'               => Site::get_url('user').'/files/',
                 'customPath'                => '',
                 'width'                     => 300,
-                'colorScheme'               => $this->defaultColors,
+                'colorScheme'               => self::$defaultColors,
                 'enableAnimation'           => TRUE,
                 'showRemaining'             => FALSE,
                 'disableTrackInformation'   => FALSE,
@@ -416,10 +416,9 @@ class HBAudioPlayer extends Plugin
             $this->options = Options::get( self::OPTNAME );
             Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/css/admin.css', 'screen'), 'admin-css' );
             Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.css', 'screen'), 'colorpicker-css' );
-            //Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.js', 'jquery.colorpicker', 'jquery' );
-            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker-src/js/colorpicker.js', 'jquery.colorpicker', 'jquery' );
-            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.src.js?'.time(), 'audioplayer-admin', 'jquery.colorpicker' );
-            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
+            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.min.js', 'jquery.colorpicker', 'jquery' );
+            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.min.js', 'audioplayer-admin', 'jquery.colorpicker' );
+            Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
             //Stack::add( 'admin_header_javascript', "
             //    AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
         }
@@ -435,10 +434,6 @@ class HBAudioPlayer extends Plugin
     public function action_admin_footer( $theme )
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
-
-            Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/farbtastic.js', 'jquery.farbtastic', 'jquery' );
-            Stack::add( 'admin_footer_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/farbtastic/load_farbtastic.js', 'jquery.load.farbtastic', 'jquery.farbtastic' );
-
             $output = '<style type="text/css">';
             if (!$this->options["colorScheme"]["transparentpagebg"]) {
                 $output .= '#colour_selector_demo {background-color: #'.$this->options["colorScheme"]["pagebg"].'; }';
@@ -456,7 +451,7 @@ class HBAudioPlayer extends Plugin
     public function theme_header( $theme )
     {
         $this->options = Options::get( self::OPTNAME );
-        Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js?'.time(), 'audioplayer', 'jquery' );
+        Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
         Stack::add( 'template_header_javascript', "
                 AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
 
