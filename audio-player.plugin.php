@@ -60,7 +60,7 @@ class HBAudioPlayer extends Plugin
      **/
     public function action_update_check()
     {
-        Update::add( 'HBAudioPlayer', $this->info->guid, $this->info->version );
+        Update::add( 'HBAudioPlayer', '4031D1D4-5409-11DE-B1F6-65BE56D89593', '0.1r17' );
     }
 
     /**
