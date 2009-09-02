@@ -5,7 +5,7 @@
     <license url="http://www.apache.org/licenses/LICENSE-2.0.html">Apache Software License 2.0</license>
 	<author url="http://www.colinseymour.co.uk">Colin Seymour</author>
 	<copyright>Copyright 2009</copyright>
-	<version>0.1r17</version>
+	<version>0.6r30</version>
     <url>http://www.lildude.co.uk/projects/hb-audio-player</url>
 	<downloadurl>http://www.lildude.co.uk/projects/hb-audio-player</downloadurl>
     <description><![CDATA[HB Audio Player is a highly configurable but simple mp3 player for all your audio needs.]]></description>
