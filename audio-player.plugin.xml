@@ -3,7 +3,7 @@
 <pluggable type="plugin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://schemas.habariproject.org/Pluggable-1.3.xsd">
     <name>HB Audio Player</name>
     <license url="http://www.apache.org/licenses/LICENSE-2.0.html">Apache Software License 2.0</license>
-	<author url="http://www.colinseymour.co.uk">Colin Seymour</author>
+	<author url="http://colinseymour.co.uk">Colin Seymour</author>
 	<copyright>Copyright 2009</copyright>
 	<version>0.6r30</version>
     <url>http://www.lildude.co.uk/projects/hb-audio-player</url>
