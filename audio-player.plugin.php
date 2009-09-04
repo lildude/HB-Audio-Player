@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 0.6r30
+ * @version 0.6r33
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -31,7 +31,7 @@
 class HBAudioPlayer extends Plugin
 {
     private $options = array();
-    private $version = '0.6r30';
+    private $version = '0.6r33';
     const OPTNAME = 'hbaudioplayer__options';
     private static $defaultColors = array (
                                     'bg'                => 'E5E5E5',
