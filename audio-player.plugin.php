@@ -172,7 +172,7 @@ class HBAudioPlayer extends Plugin
     public function action_plugin_deactivation( $file )
     {
         if ( realpath( $file ) == __FILE__ ) {
-           Options::delete(self::OPTNAME);
+           //Options::delete(self::OPTNAME);
         }
     }
 
@@ -351,6 +351,7 @@ class HBAudioPlayer extends Plugin
                         $ui->advfs->append( 'checkbox', 'encode', 'null:null', _t( 'Encode MP3 URLs' ), 'hbap_checkbox' );
                             $ui->advfs->encode->value = $this->options['encode'];
                             $ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.' );
+                    //$ui->append( 'checkbox', 'removeOpts', 'null:null', _t( 'Automatically delete options when disabling this plugin?' ) );
 
                     $ui->append( 'submit', 'submit', _t( 'Save Options' ) );
                     $ui->on_success ( array( $this, 'storeOpts' ) );
