@@ -67,8 +67,8 @@ form#hbaudioplayer p.error { float:left; color:#A00; }
     border: 1px solid #ccc;
     padding: 30px 15px !important;
 }
-#cs_transparentpagebg {
+
+/*#cs_transparentpagebg {
     position: absolute;
     margin-top: 20px;
-
-}
+}*/
