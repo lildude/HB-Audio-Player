@@ -306,7 +306,7 @@ class HBAudioPlayer extends Plugin
                             $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
                         $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
                             $ui->appfs->cs_transparentpagebg->value = $this->options['colorScheme']['transparentpagebg'];
-                            //$ui->appfs->cs_transparentpagebg->id = 'cs_transparentpagebg';
+                            $ui->appfs->cs_transparentpagebg->id = 'cs_transparentpagebg';
                         $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation' ), 'hbap_checkbox' );
                             $ui->appfs->enableAnimation->value = $this->options['enableAnimation'];
                             $ui->appfs->enableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.');
