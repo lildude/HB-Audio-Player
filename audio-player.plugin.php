@@ -292,7 +292,8 @@ class HBAudioPlayer extends Plugin
                             $ui->appfs->colour_selector_demo->append( 'static', 'demo', '
                                 <div id="demoplayer">Audio Player</div>
                                 <script type="text/javascript">
-                                AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.$this->getPlayerOptions().');
+                                AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js($this->getPlayerOptions()).');
+
                                 AudioPlayer.embed("demoplayer", {demomode:"yes"});
                                 </script>
                             ');
@@ -303,7 +304,7 @@ class HBAudioPlayer extends Plugin
                                 $ui->appfs->cs_pagebg->disabled = TRUE;
                             }
                             $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
-                        $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ), 'hbap_checkbox' );
+                        $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
                             $ui->appfs->cs_transparentpagebg->value = $this->options['colorScheme']['transparentpagebg'];
                             //$ui->appfs->cs_transparentpagebg->id = 'cs_transparentpagebg';
                         $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation' ), 'hbap_checkbox' );
@@ -453,7 +454,7 @@ class HBAudioPlayer extends Plugin
     {
         $this->options = Options::get( self::OPTNAME );
         Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
-        Stack::add( 'template_header_javascript', "AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".$this->getPlayerOptions().");" ,'audioplayer-init', 'audioplayer');
+        Stack::add( 'template_header_javascript', "AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
     }
 
     /**
@@ -512,7 +513,7 @@ class HBAudioPlayer extends Plugin
         $playerElementID = "audioplayer_$playerID";
         $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
         $output .= '<script type="text/javascript">';
-        $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.json_encode($playerOptions).' );';
+        $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
         $output .= '</script></p>';
         $playerID++;
         
@@ -639,7 +640,6 @@ class HBAudioPlayer extends Plugin
      */
     private static function php2js($object)
     {
-		/*
             $js_options = '{';
             $separator = "";
             $real_separator = ",";
@@ -651,8 +651,7 @@ class HBAudioPlayer extends Plugin
             }
             $js_options .= "}";
 
-            return $js_options;*/
-		return json_encode($object);
+            return $js_options;
     }
 
 	/**
@@ -676,7 +675,7 @@ class HBAudioPlayer extends Plugin
         $playerOptions['checkpolicy'] = $this->options['chkPolicy'];
         $playerOptions['rtl'] = $this->options['rtlMode'];
 
-        return json_encode( array_merge( $playerOptions, $this->options["colorScheme"] ) );
+        return array_merge($playerOptions, $this->options["colorScheme"]);
     }
 
     /**
