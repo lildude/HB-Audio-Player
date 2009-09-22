@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 0.6r33
+ * @version 1.0
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -31,7 +31,7 @@
 class HBAudioPlayer extends Plugin
 {
     private $options = array();
-    private $version = '0.6r33';
+    private $version = '1.0';
     const OPTNAME = 'hbaudioplayer__options';
     private static $defaultColors = array (
                                     'bg'                => 'E5E5E5',
@@ -170,7 +170,7 @@ class HBAudioPlayer extends Plugin
     public function action_plugin_deactivation( $file )
     {
         if ( realpath( $file ) == __FILE__ ) {
-           //Options::delete(self::OPTNAME);
+           Options::delete(self::OPTNAME);
         }
     }
 
@@ -344,7 +344,7 @@ class HBAudioPlayer extends Plugin
                             $ui->advfs->encode->value = $options['encode'];
                             $ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.' );
 
-                    $ui->append( 'submit', 'save', _t( 'Save Options' ) );
+                    $ui->append( 'submit', 'submit', _t( 'Save Options' ) );
                     $ui->on_success ( array( $this, 'storeOpts' ) );
                     $ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
 					$form_output = $ui->get();
@@ -500,7 +500,7 @@ class HBAudioPlayer extends Plugin
             $pair = explode("=", $data[$i]);
             $playerOptions[trim($pair[0])] = trim($pair[1]);
         }
-        // FIXME: The comment here is shown on Safari
+
         $playerElementID = "audioplayer_$playerID";
         $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . _t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version' ) . '<a href="http://get.adobe.com/flashplayer/" title="' . _t( 'Download Adobe Flash Player') .'">' . _t( 'here' ) . '</a>.' . _t( ' You also need to have JavaScript enabled in your browser.' ).'</span>';
         $output .= '<script type="text/javascript">';
