@@ -3,7 +3,7 @@
 	height: 176px;
 	overflow: hidden;
 	position: absolute;
-	background: url(images/custom_background-light.png);
+	background: url(images/custom_background.png);
 	display: none;
 }
 .colorpicker_color {

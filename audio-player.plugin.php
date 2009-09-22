@@ -285,15 +285,11 @@ class HBAudioPlayer extends Plugin
                                                             <span>'._t( 'Theme Colours' ).'</span>
                                                             <ul>'.$themeColorStr.'</ul></div><input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Color Scheme' ).'">';
                         $ui->appfs->append( 'hidden', 'resetColors', 'null:null');
-                            $ui->appfs->resetColors->value = $this->options['resetColors'];
                             $ui->appfs->resetColors->id = 'resetColors';
                         $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
-                        // TODO: Get the player to update when saving the options
                             $ui->appfs->colour_selector_demo->append( 'static', 'demo', '
                                 <div id="demoplayer">Audio Player</div>
                                 <script type="text/javascript">
-                                AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js($this->getPlayerOptions()).');
-
                                 AudioPlayer.embed("demoplayer", {demomode:"yes"});
                                 </script>
                             ');
@@ -306,7 +302,6 @@ class HBAudioPlayer extends Plugin
                             $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
                         $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
                             $ui->appfs->cs_transparentpagebg->value = $this->options['colorScheme']['transparentpagebg'];
-                            //$ui->appfs->cs_transparentpagebg->id = 'cs_transparentpagebg';
                         $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation' ), 'hbap_checkbox' );
                             $ui->appfs->enableAnimation->value = $this->options['enableAnimation'];
                             $ui->appfs->enableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.');
@@ -351,12 +346,13 @@ class HBAudioPlayer extends Plugin
                         $ui->advfs->append( 'checkbox', 'encode', 'null:null', _t( 'Encode MP3 URLs' ), 'hbap_checkbox' );
                             $ui->advfs->encode->value = $this->options['encode'];
                             $ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.' );
-                    //$ui->append( 'checkbox', 'removeOpts', 'null:null', _t( 'Automatically delete options when disabling this plugin?' ) );
 
-                    $ui->append( 'submit', 'submit', _t( 'Save Options' ) );
+                    $ui->append( 'submit', 'save', _t( 'Save Options' ) );
                     $ui->on_success ( array( $this, 'storeOpts' ) );
                     $ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
-                    $ui->out();
+					$form_output = $ui->get();
+					echo '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js($this->getPlayerOptions()).');</script>';
+					echo $form_output;
                 break;
             }
         }
@@ -421,9 +417,7 @@ class HBAudioPlayer extends Plugin
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.min.js', 'jquery.colorpicker', 'jquery' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player-admin.min.js', 'audioplayer-admin', 'jquery.colorpicker' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
-            //Stack::add( 'admin_header_javascript', "
-            //    AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
-        }
+		}
     }
 
     /**
@@ -664,6 +658,7 @@ class HBAudioPlayer extends Plugin
 	 */
     private function getPlayerOptions()
     {
+		$this->options = Options::get( self::OPTNAME );
         $playerOptions = array();
         $playerOptions['width'] = $this->options['width'];
         $playerOptions['animation'] = $this->options['enableAnimation'];

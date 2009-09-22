@@ -10,7 +10,7 @@ form#hbaudioplayer p.error { float:left; color:#A00; }
 
 /* Plugin specific */
 #colorsample {
-    background: url("../js/cpicker-src/images/select2.png") no-repeat scroll 50% 50%;
+    background: url("../imgs/select2.png") no-repeat scroll 50% 50%;
     cursor: pointer;
     height: 28px;
     width: 28px;
@@ -34,11 +34,11 @@ form#hbaudioplayer p.error { float:left; color:#A00; }
 	width: 134px;
 	padding: 0 0 13px 0;
 	float: left;
-	background: url("../../wp-audio-player/assets/thcpck-bottom.png") no-repeat left bottom;
+	background: url("../imgs/thcpck-bottom-light.png") no-repeat left bottom;
 }
 
 #themecolor span {
-    	background: url("../../wp-audio-player/assets/thcpck-top.png") no-repeat left top;
+    	background: url("../imgs/thcpck-top-light.png") no-repeat left top;
 	display: block;
 	text-indent: -9999px;
 	height: 13px;
@@ -46,7 +46,7 @@ form#hbaudioplayer p.error { float:left; color:#A00; }
 	font-size: 0;
 }
 #themecolor ul { 
-    background: url("../../wp-audio-player/assets/thcpck-slice.png") repeat-y left top;
+    background: url("../imgs/thcpck-slice-light.png") repeat-y left top;
     padding: 1px 14px 1px 15px;
     float: left;
     width: 105px;
