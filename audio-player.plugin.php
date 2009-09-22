@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright 2009 Colin Seymour - http://www.lildude.co.uk/projects/slimbox2
+ * Copyright 2009 Colin Seymour - http://www.lildude.co.uk/projects/hb-audio-player
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  */
 
 /**
- * A Habari implementation of the WPAudioPlayer [http://wpaudioplayer.com/] plugin
+ * A Habari implementation of the WP Audio Player [http://wpaudioplayer.com/] plugin
  * by Martin Laine.
  *
  * @package HBAudioPlayer
@@ -92,7 +92,7 @@ class HBAudioPlayer extends Plugin
 
                         <p>' . _t( 'You can configure HB Audio Player with a default audio files
                         location so you don’t have to specify the full URL everytime.
-                        You can set this location via the Settings panel. Once set, you
+                        You can set this location via the Configuration panel. Once set, you
                         can use this syntax:' ) . '<br />
 
                         <code>[audio:your_mp3_file.mp3]</code></p>
@@ -109,7 +109,7 @@ class HBAudioPlayer extends Plugin
                         <a href="http://www.adobe.com/devnet/flashplayer/articles/cross_domain_policy.html">' ._t( 'restriction' ) .'</a>
                         ' ._t( 'of the Flash player, but it can be over-ridden.') . '</p>
 
-                        <p>' . _t( 'You can however pass the artice and title information when inserting the
+                        <p>' . _t( 'You can however pass the artist and title information when inserting the
                         player using the following syntax:' ) . '<br />
 
                         <code>[audio:your_mp3_file.mp3|titles=The title|artists=The artist]</code></p>
@@ -427,6 +427,7 @@ class HBAudioPlayer extends Plugin
     public function action_admin_footer( $theme )
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
+			$options = Options::get( self::OPTNAME );
             $output = '<style type="text/css">';
             if (!$options["colorScheme"]["transparentpagebg"]) {
                 $output .= '#colour_selector_demo {background-color: #'.$options["colorScheme"]["pagebg"].'; }';
@@ -477,7 +478,7 @@ class HBAudioPlayer extends Plugin
      */
     public function filter_processContent ( $content, $function )
     {
-        return preg_replace_callback('#\[audio:(([^]]+))\]#', array(self, 'insertPlayer'.$function), $content);
+        return preg_replace_callback('#\[audio:(([^]]+))\]#', array('self', 'insertPlayer'.$function), $content);
     }
 
     /**
@@ -590,6 +591,7 @@ class HBAudioPlayer extends Plugin
 	 */
     private static function getFileData($matches)
     {
+		$options = Options::get( self::OPTNAME );
         $data = preg_split("/[\|]/", $matches[1]);
         $files = array();
 

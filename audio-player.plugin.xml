@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- This is the new format for Habari r3624 or later (and will be for 0.7) Order MAY be important. Time will tell -->
 <pluggable type="plugin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://schemas.habariproject.org/Pluggable-1.3.xsd">
     <name>HB Audio Player</name>
     <license url="http://www.apache.org/licenses/LICENSE-2.0.html">Apache Software License 2.0</license>
@@ -8,6 +7,6 @@
 	<version>0.6r33</version>
     <url>http://www.lildude.co.uk/projects/hb-audio-player</url>
 	<downloadurl>http://www.lildude.co.uk/projects/hb-audio-player</downloadurl>
-    <description><![CDATA[HB Audio Player is a highly configurable but simple mp3 player for all your audio needs.]]></description>
+    <description><![CDATA[HB Audio Player is a highly configurable but simple Flash based MP3 player for Habari.]]></description>
     <guid>4031D1D4-5409-11DE-B1F6-65BE56D89593</guid>
 </pluggable>
