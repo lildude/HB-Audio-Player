@@ -10,7 +10,7 @@ form#hbaudioplayer p.error { float:left; color:#A00; }
 
 /* Plugin specific */
 #colorsample {
-    background: url("../imgs/select2.png") no-repeat scroll 50% 50%;
+    background: url("../imgs/select.png") no-repeat scroll 50% 50%;
     cursor: pointer;
     height: 28px;
     width: 28px;

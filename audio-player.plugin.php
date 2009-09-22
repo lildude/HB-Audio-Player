@@ -59,11 +59,10 @@ class HBAudioPlayer extends Plugin
      * @access public
      * @return void
      **/
-	/*
     public function action_update_check()
     {
         Update::add( 'HBAudioPlayer', '4031D1D4-5409-11DE-B1F6-65BE56D89593', $this->version );
-    } */
+    }
 
     /**
      * The help message - it provides a larger explanation of what this plugin
@@ -73,54 +72,53 @@ class HBAudioPlayer extends Plugin
      */
     public function help()
     {
-            return _t(' <div style="color:red; font-weight: bold;">THIS IS THE ONE AND ONLY RELEASE OF THIS PLUGIN FOR HABARI 0.6.
+            return    ' <div style="color:red; font-weight: bold;">' . _t( 'THIS IS THE ONE AND ONLY RELEASE OF THIS PLUGIN FOR HABARI 0.6.
                         THIS HAS NOT BEEN TESTED WITH EARLIER RELEASES AND GIVEN THE CHANGES WITH r3624 (SOON TO BE
-                        0.7) WILL NOT LIKELY BECOME AN OFFICIAL RELEASE FOR HABARI 0.6 AND EARLIER</div>
+                        0.7) WILL NOT LIKELY BECOME AN OFFICIAL RELEASE FOR HABARI 0.6 AND EARLIER' ) . '</div>
                         <br />
-                        <p>HB Audio Player is a highly configurable but simple mp3 player
+                        <p>' . _t( 'HB Audio Player is a highly configurable but simple mp3 player
                         for all your audio needs. You can customise the player\'s
                         colour scheme to match your blog theme, have it automatically
-                        show track information from the encoded ID3 tags and more.</p>
+                        show track information from the encoded ID3 tags and more.' ) .'</p>
                         <br />
-                        <strong>Basic Usage:</strong><br />
-                        <p>The default mechanism for inserting a player in a post is to use the [audio] syntax:<br />
+                        <strong>'. _t( 'Basic Usage: ') . '</strong><br />
+                        <p>' . _t( 'The default mechanism for inserting a player in a post is to use the [audio] syntax:' ) . '<br />
                         
                         <code>[audio:http://www.yourdomain.com/path/to/your_mp3_file.mp3]</code></p>
 
-                        <p>This will insert a player and load your_mp3_file.mp3 into it.</p>
+                        <p>' . _t( 'This will insert a player and load your_mp3_file.mp3 into it.' ) .'</p>
 
-                        <p>Multiple file can be specified by separating their paths/names with commas.</p>
+                        <p>' . _t( 'Multiple file can be specified by separating their paths/names with commas.' ) . '</p>
 
-                        <p>You can configure HB Audio Player with a default audio files
+                        <p>' . _t( 'You can configure HB Audio Player with a default audio files
                         location so you don’t have to specify the full URL everytime.
                         You can set this location via the Settings panel. Once set, you
-                        can use this syntax:<br />
+                        can use this syntax:' ) . '<br />
 
                         <code>[audio:your_mp3_file.mp3]</code></p>
 
-                        <p>Audio Player will automatically look for the file in your default
+                        <p>' . _t( 'Audio Player will automatically look for the file in your default
                         audio files location. This can be very handy if you decide to move
-                        all your audio files to a different location in the future.</p>
+                        all your audio files to a different location in the future.' ) . '</p>
                         <br />
-                        <strong>Advanced Usage</strong><br />
+                        <strong>'. _t( 'Advanced Usage:' ) . '</strong><br />
 
-                        <p>By default, the player gets the track information from the ID3 tags
+                        <p>' . _t( 'By default, the player gets the track information from the ID3 tags
                         of the mp3 file, however under some circumstances it won\'t be able to,
-                        for example if the file is on another domain.  This is a
-                        <a href="http://www.adobe.com/devnet/flashplayer/articles/cross_domain_policy.html">restriction</a>
-                        of the Flash player, but it can be over-ridden.</p>
+                        for example if the file is on another domain.  This is a ') .'
+                        <a href="http://www.adobe.com/devnet/flashplayer/articles/cross_domain_policy.html">' ._t( 'restriction' ) .'</a>
+                        ' ._t( 'of the Flash player, but it can be over-ridden.') . '</p>
 
-                        <p>You can however pass the artice and title information when inserting the
-                        player using the following syntax:<br />
+                        <p>' . _t( 'You can however pass the artice and title information when inserting the
+                        player using the following syntax:' ) . '<br />
 
                         <code>[audio:your_mp3_file.mp3|titles=The title|artists=The artist]</code></p>
 
-                        <p>For multiple files:<br />
+                        <p>' . _t( 'For multiple files:' ) . '<br />
 
                         <code>[audio:mp3_file_1.mp3,mp3_file_2.mp3|titles=Title 1,Title 2|artists=Artist 1,Artist 2]</code></p>
                         <br />
-                        <p><a href="'.URL::get( 'admin', array( 'page' => 'plugins', 'configure' => $this->plugin_id(), 'configaction' => 'Configure' ) ) . '#plugin_options">Configure</a> HB Audio Player now.</p>
-                       ');
+                        <p><a href="'.URL::get( 'admin', array( 'page' => 'plugins', 'configure' => $this->plugin_id(), 'configaction' => _t( 'Configure' ) ) ) . '#plugin_options">' ._t( 'Configure' ) .'</a>' . _t( 'HB Audio Player now.' ) . '</p>';
     }
 
     /**
@@ -143,7 +141,7 @@ class HBAudioPlayer extends Plugin
                 'disableTrackInformation'   => FALSE,
                 'rtlMode'                   => FALSE,
                 'feedAlt'                   => 'nothing',
-                'feedCustom'                => '[Audio clip: view full post to listen]',
+                'feedCustom'                => _t( '[Audio clip: view full post to listen]' ),
                 'initVol'                   => 60,
                 'buffer'                    => 5,
                 'chkPolicy'                 => FALSE,
@@ -151,9 +149,9 @@ class HBAudioPlayer extends Plugin
                 'resetColors'               => FALSE
             );
 
-            $this->options = Options::get( self::OPTNAME );
+            $options = Options::get( self::OPTNAME );
 
-            if ( empty( $this->options ) ) {
+            if ( empty( $options ) ) {
                 Options::set( self::OPTNAME, $defOptions );
             }
             else {
@@ -203,20 +201,19 @@ class HBAudioPlayer extends Plugin
      */
     public function action_plugin_ui( $plugin_id, $action )
     {
-        $this->add_template( 'hbap_checkbox', dirname( $this->get_file() ) . '/lib/formcontrols/optionscontrol_checkbox.php' );
-        $this->add_template( 'hbap_text', dirname( $this->get_file() ) . '/lib/formcontrols/optionscontrol_text.php' );
-        $this->add_template( 'hbap_select', dirname( $this->get_file() ) . '/lib/formcontrols/optionscontrol_select.php' );
-        $this->add_template( 'hbap_radio', dirname( $this->get_file() ) . '/lib/formcontrols/optionscontrol_radio.php' );
+        $this->add_template( 'hbap_checkbox', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_checkbox.php' );
+        $this->add_template( 'hbap_text', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_text.php' );
+        $this->add_template( 'hbap_select', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_select.php' );
 
         if ( $plugin_id == $this->plugin_id() ) {
             switch ( $action ) {
                 case _t( 'Configure' ):
-                    $this->options = Options::get( self::OPTNAME );
+                    $options = Options::get( self::OPTNAME );
                     $ui = new FormUI( strtolower( get_class( $this ) ) );
                     $ui->append( 'wrapper', 'colourselector', 'formcontrol' );
 
                     // First all the hidden settings
-                    foreach( $this->options['colorScheme'] as $opt => $value ) {
+                    foreach( $options['colorScheme'] as $opt => $value ) {
                         $ui->colourselector->append( 'hidden', "cs_".$opt, 'null:null' );
                             $optn = "cs_$opt";
                             if ( $optn == 'cs_pagebg' ) continue;
@@ -227,7 +224,7 @@ class HBAudioPlayer extends Plugin
                     if ( Plugins::is_loaded( 'Habari Media Silo' ) ) {
                         // Get a list of all the directories available in the loaded Habari Silo
                         $dirs = self::siloDirs();
-                        $dirs['custom'] = 'Custom';
+                        $dirs['custom'] = _t( 'Custom' );
                     }
                     
                     $ui->append( 'fieldset', 'genfs', _t( 'General' ) );
@@ -235,22 +232,22 @@ class HBAudioPlayer extends Plugin
                             $ui->genfs->defaultPath->template = 'hbap_select';
                             $ui->genfs->defaultPath->id = 'defaultPath';
                             $ui->genfs->defaultPath->pct = 80;
-                            $ui->genfs->defaultPath->value = $this->options['defaultPath'];
+                            $ui->genfs->defaultPath->value = $options['defaultPath'];
                             $ui->genfs->defaultPath->helptext = _t( 'This is the default location for your audio files. When you use the [audio] syntax and don\'t provide an absolute URL for the mp3 file (the full URL including "http://") Audio Player will automatically look for the file in this location. You can set this to a folder located inside your blog folder structure or, alternatively, if you wish to store your audio files outside your blog (maybe even on a different server), choose "Custom" from the drop down and enter the absolute URL to that location.' );
                             $ui->genfs->defaultPath->options = $dirs;
 
 
                        $ui->genfs->append( 'text', 'customPath', 'null:null', _t( 'Custom Audio Path:' ), 'hbap_text' );
-                            $ui->genfs->customPath->value = $this->options['customPath'];
+                            $ui->genfs->customPath->value = $options['customPath'];
                             $ui->genfs->customPath->pct = 80;
                             $ui->genfs->customPath->id = 'customPath';
-                            if ( $this->options['defaultPath'] != 'custom' ) {
+                            if ( $options['defaultPath'] != 'custom' ) {
                                 $ui->genfs->customPath->disabled = TRUE;
                             }
                     
                     $ui->append( 'fieldset', 'appfs', _t( 'Appearance' ) );
                         $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width' ), 'hbap_text' );
-                            $ui->appfs->width->value = $this->options['width'];
+                            $ui->appfs->width->value = $options['width'];
                             $ui->appfs->width->helptext = _t( 'You can enter a value in pixels (e.g. 200) or as a percentage (e.g. 100%)' );
                         
                         $ui->appfs->append( 'select', 'fieldsel', 'null:null', _t( 'Colour Scheme Selector' ) );
@@ -294,64 +291,64 @@ class HBAudioPlayer extends Plugin
                                 </script>
                             ');
                         $ui->appfs->append( 'text', 'cs_pagebg', 'null:null', _t( 'Page Background' ), 'hbap_text' );
-                            $ui->appfs->cs_pagebg->value = '#'.$this->options['colorScheme']['pagebg'];
+                            $ui->appfs->cs_pagebg->value = '#'.$options['colorScheme']['pagebg'];
                             $ui->appfs->cs_pagebg->id = 'cs_pagebg';
-                            if ($this->options['colorScheme']['transparentpagebg']) {
+                            if ($options['colorScheme']['transparentpagebg']) {
                                 $ui->appfs->cs_pagebg->disabled = TRUE;
                             }
                             $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).');
                         $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background' ) );
-                            $ui->appfs->cs_transparentpagebg->value = $this->options['colorScheme']['transparentpagebg'];
+                            $ui->appfs->cs_transparentpagebg->value = $options['colorScheme']['transparentpagebg'];
                         $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation' ), 'hbap_checkbox' );
-                            $ui->appfs->enableAnimation->value = $this->options['enableAnimation'];
+                            $ui->appfs->enableAnimation->value = $options['enableAnimation'];
                             $ui->appfs->enableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.');
                         $ui->appfs->append( 'checkbox', 'showRemaining', 'null:null', _t( 'Show Remaining' ), 'hbap_checkbox' );
-                            $ui->appfs->showRemaining->value = $this->options['showRemaining'];
+                            $ui->appfs->showRemaining->value = $options['showRemaining'];
                             $ui->appfs->showRemaining->helptext = _t( 'This will make the time display count down rather than up.' );
                         $ui->appfs->append( 'checkbox', 'disableTrackInformation', 'null:null', _t( 'Disable Track Information' ), 'hbap_checkbox' );
-                            $ui->appfs->disableTrackInformation->value = $this->options['disableTrackInformation'];
+                            $ui->appfs->disableTrackInformation->value = $options['disableTrackInformation'];
                             $ui->appfs->disableTrackInformation->helptext = _t( 'Select this if you wish to disable track information display (the player won\'t show titles or artist names even if they are available.)' );
                         $ui->appfs->append( 'checkbox', 'rtlMode', 'null:null', _t( 'Switch to RTL Layout' ), 'hbap_checkbox' );
-                            $ui->appfs->rtlMode->value = $this->options['rtlMode'];
+                            $ui->appfs->rtlMode->value = $options['rtlMode'];
                             $ui->appfs->rtlMode->helptext = _t( 'Select this to switch the player layout to RTL mode (right to left) for Arabic and Hebrew language blogs.' );
                     
                     $ui->append( 'fieldset', 'feedfs', _t( 'Feed' ) );
                         $ui->feedfs->append( 'select', 'feedAlt', 'null:null', _t( 'Alternate Content') );
                             $ui->feedfs->feedAlt->id = 'feedAlt';
                             $ui->feedfs->feedAlt->template = 'hbap_select';
-                            $ui->feedfs->feedAlt->value = $this->options['feedAlt'];
+                            $ui->feedfs->feedAlt->value = $options['feedAlt'];
                             $ui->feedfs->feedAlt->options = array( 'download' => 'Download Link', 'nothing' => 'Nothing', 'custom' => 'Custom' );
                             $ui->feedfs->feedAlt->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have three choices:<br /><br />
                                 <strong>Download link</strong>: Choose this if you are OK with subscribers downloading the file.<br />
                                 <strong>Nothing</strong>: Choose this if you feel that your feed shouldn\'t contain any reference to the audio file.<br />
                                 <strong>Custom</strong>: Choose this to use your own alternative content for all player instances. You can use this option to tell subscribers that they can listen to the audio file if they read the post on your blog.');
                         $ui->feedfs->append( 'text', 'feedCustom', 'null:null', _t( 'Custom alternate content' ), 'hbap_text' );
-                            $ui->feedfs->feedCustom->value = $this->options['feedCustom'];
+                            $ui->feedfs->feedCustom->value = $options['feedCustom'];
                             $ui->feedfs->feedCustom->pct = 80;
                             $ui->feedfs->feedCustom->id = 'feedCustom';
-                            if ( $this->options['feedAlt'] != 'cusom' ) {
+                            if ( $options['feedAlt'] != 'cusom' ) {
                                 $ui->feedfs->feedCustom->disabled = TRUE;
                             }
 
                     $ui->append( 'fieldset', 'advfs', _t( 'Advanced' ) );
                         $ui->advfs->append( 'text', 'initVol', 'null:null', _t( 'Initial Volume' ), 'hbap_text' );
-                            $ui->advfs->initVol->value = $this->options['initVol'];
+                            $ui->advfs->initVol->value = $options['initVol'];
                             $ui->advfs->initVol->helptext = _t( 'This is the volume at which the player defaults to (0 is off, 100 is full volume)' );
                         $ui->advfs->append( 'text', 'buffer', 'null:null', _t( 'Buffer time (in seconds)'), 'hbap_text' );
-                            $ui->advfs->buffer->value = $this->options['buffer'];
+                            $ui->advfs->buffer->value = $options['buffer'];
                             $ui->advfs->buffer->helptext = _t( 'If you think your target audience is likely to have a slow internet connection, you can increase the player\'s buffering time (for standard broadband connections, 5 seconds is enough)' );
                         $ui->advfs->append( 'checkbox', 'chkPolicy', 'null:null', _t( 'Check for policy file' ), 'hbap_checkbox' );
-                            $ui->advfs->chkPolicy->value = $this->options['chkPolicy'];
+                            $ui->advfs->chkPolicy->value = $options['chkPolicy'];
                             $ui->advfs->chkPolicy->helptext = _t( 'Enable this to tell Audio Player to check for a policy file on the server. This allows Flash to read ID3 tags on remote servers. Only enable this if all your mp3 files are located on a server with a policy file.' );
                         $ui->advfs->append( 'checkbox', 'encode', 'null:null', _t( 'Encode MP3 URLs' ), 'hbap_checkbox' );
-                            $ui->advfs->encode->value = $this->options['encode'];
+                            $ui->advfs->encode->value = $options['encode'];
                             $ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.' );
 
                     $ui->append( 'submit', 'save', _t( 'Save Options' ) );
                     $ui->on_success ( array( $this, 'storeOpts' ) );
                     $ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
 					$form_output = $ui->get();
-					echo '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js($this->getPlayerOptions()).');</script>';
+					echo '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js(self::getPlayerOptions()).');</script>';
 					echo $form_output;
                 break;
             }
@@ -411,7 +408,7 @@ class HBAudioPlayer extends Plugin
     public function action_admin_header( $theme )
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
-            $this->options = Options::get( self::OPTNAME );
+            $options = Options::get( self::OPTNAME );
             Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/css/admin.css', 'screen'), 'admin-css' );
             Stack::add( 'admin_stylesheet', array( URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.css', 'screen'), 'colorpicker-css' );
             Stack::add( 'admin_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/cpicker/colorpicker.min.js', 'jquery.colorpicker', 'jquery' );
@@ -431,8 +428,8 @@ class HBAudioPlayer extends Plugin
     {
         if ( Controller::get_var( 'configure' ) == $this->plugin_id ) {
             $output = '<style type="text/css">';
-            if (!$this->options["colorScheme"]["transparentpagebg"]) {
-                $output .= '#colour_selector_demo {background-color: #'.$this->options["colorScheme"]["pagebg"].'; }';
+            if (!$options["colorScheme"]["transparentpagebg"]) {
+                $output .= '#colour_selector_demo {background-color: #'.$options["colorScheme"]["pagebg"].'; }';
             }
             $output .= '</style>';
             echo $output;
@@ -446,9 +443,8 @@ class HBAudioPlayer extends Plugin
      */
     public function theme_header( $theme )
     {
-        $this->options = Options::get( self::OPTNAME );
         Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
-        Stack::add( 'template_header_javascript', "AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js($this->getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
+        Stack::add( 'template_header_javascript', "AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js(self::getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
     }
 
     /**
@@ -481,7 +477,7 @@ class HBAudioPlayer extends Plugin
      */
     public function filter_processContent ( $content, $function )
     {
-        return preg_replace_callback('#\[audio:(([^]]+))\]#', array($this, 'insertPlayer'.$function), $content);
+        return preg_replace_callback('#\[audio:(([^]]+))\]#', array(self, 'insertPlayer'.$function), $content);
     }
 
     /**
@@ -490,14 +486,14 @@ class HBAudioPlayer extends Plugin
 	 * @param array $matches from callback function
 	 * @return string
      */
-    private function insertPlayerOut( $matches )
+    private static function insertPlayerOut( $matches )
     {
-        $this->options = Options::get( self::OPTNAME );
+        $options = Options::get( self::OPTNAME );
         static $playerID = 0;
-        list( $files, $data ) = $this->getFileData( $matches );
+        list( $files, $data ) = self::getfileData( $matches );
 
         $playerOptions = array();
-        $playerOptions['soundFile'] = ( $this->options['encode'] ) ? self::encodeSource( implode( ",", $files ) ): implode( ",", $files );
+        $playerOptions['soundFile'] = ( $options['encode'] ) ? self::encodeSource( implode( ",", $files ) ): implode( ",", $files );
 
         for ($i = 1; $i < count($data); $i++) {
             $pair = explode("=", $data[$i]);
@@ -505,7 +501,7 @@ class HBAudioPlayer extends Plugin
         }
         // FIXME: The comment here is shown on Safari
         $playerElementID = "audioplayer_$playerID";
-        $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . sprintf(_t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version <a href="%s" title="Download Adobe Flash Player">here</a>. You also need to have JavaScript enabled in your browser.' ), 'http://get.adobe.com/flashplayer/').'</span>';
+        $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . _t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version' ) . '<a href="http://get.adobe.com/flashplayer/" title="' . _t( 'Download Adobe Flash Player') .'">' . _t( 'here' ) . '</a>.' . _t( ' You also need to have JavaScript enabled in your browser.' ).'</span>';
         $output .= '<script type="text/javascript">';
         $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
         $output .= '</script></p>';
@@ -520,12 +516,12 @@ class HBAudioPlayer extends Plugin
 	 * @param array $matches from callback function
 	 * @return string
      */
-    private function insertPlayerAtom( $matches )
+    private static function insertPlayerAtom( $matches )
     {
-        $this->options = Options::get( self::OPTNAME );
-        list( $files, $data ) = $this->getFileData( $matches );
+        $options = Options::get( self::OPTNAME );
+        list( $files, $data ) = self::getfileData( $matches );
 
-        switch ( $this->options['feedAlt'] ) {
+        switch ( $options['feedAlt'] ) {
             case "nothing":
                 $output = '';
                 break;
@@ -538,7 +534,7 @@ class HBAudioPlayer extends Plugin
                 }
                 break;
             case "custom":
-                $output = $this->options['feedCustom'];
+                $output = $options['feedCustom'];
                 break;
         }
         return $output;
@@ -551,10 +547,10 @@ class HBAudioPlayer extends Plugin
 	 * @return string
      * @todo Add post_content_excerpt config and output functionality
      */
-    private function insertPlayerExcerpt( $matches )
+    private static function insertPlayerExcerpt( $matches )
     {
-        $this->options = Options::get( self::OPTNAME );
-        list( $files, $data ) = $this->getFileData( $matches );
+        $options = Options::get( self::OPTNAME );
+        list( $files, $data ) = self::getfileData( $matches );
         return NULL;
     }
 
@@ -565,10 +561,10 @@ class HBAudioPlayer extends Plugin
 	 * @return string
      * @todo Add post_content_more config and output functionality
      */
-    private function insertPlayerMore( $matches )
+    private static function insertPlayerMore( $matches )
     {
-        $this->options = Options::get( self::OPTNAME );
-        list( $files, $data ) = $this->getFileData( $matches );
+        $options = Options::get( self::OPTNAME );
+        list( $files, $data ) = self::getfileData( $matches );
         return NULL;
     }
 
@@ -579,10 +575,10 @@ class HBAudioPlayer extends Plugin
 	 * @return string
      * @todo Add post_content_summary config and output functionality
      */
-    private function insertPlayerSummary( $matches )
+    private static function insertPlayerSummary( $matches )
     {
-        $this->options = Options::get( self::OPTNAME );
-        list( $files, $data ) = $this->getFileData( $matches );
+        $options = Options::get( self::OPTNAME );
+        list( $files, $data ) = self::getfileData( $matches );
         return NULL;
     }
 
@@ -592,7 +588,7 @@ class HBAudioPlayer extends Plugin
 	 * @param array $matches
 	 * @return array
 	 */
-    private function getFileData($matches)
+    private static function getFileData($matches)
     {
         $data = preg_split("/[\|]/", $matches[1]);
         $files = array();
@@ -602,7 +598,7 @@ class HBAudioPlayer extends Plugin
             $afile = trim($afile);
             // Get absolute URLs for relative ones
             if (!self::isAbsoluteURL($afile)) {
-                $afile = $this->options['defaultPath'] . $afile;
+                $afile = $options['defaultPath'] . $afile;
             }
             array_push( $files, $afile );
         }
@@ -656,21 +652,21 @@ class HBAudioPlayer extends Plugin
 	 * @access private
 	 * @return array
 	 */
-    private function getPlayerOptions()
+    private static function getPlayerOptions()
     {
-		$this->options = Options::get( self::OPTNAME );
+		$options = Options::get( self::OPTNAME );
         $playerOptions = array();
-        $playerOptions['width'] = $this->options['width'];
-        $playerOptions['animation'] = $this->options['enableAnimation'];
-        $playerOptions['encode'] = $this->options['encode'];
-        $playerOptions['initialvolume'] = $this->options['initVol'];
-        $playerOptions['remaining'] = $this->options['showRemaining'];
-        $playerOptions['noinfo'] = $this->options['disableTrackInformation'];
-        $playerOptions['buffer'] = $this->options['buffer'];
-        $playerOptions['checkpolicy'] = $this->options['chkPolicy'];
-        $playerOptions['rtl'] = $this->options['rtlMode'];
+        $playerOptions['width'] = $options['width'];
+        $playerOptions['animation'] = $options['enableAnimation'];
+        $playerOptions['encode'] = $options['encode'];
+        $playerOptions['initialvolume'] = $options['initVol'];
+        $playerOptions['remaining'] = $options['showRemaining'];
+        $playerOptions['noinfo'] = $options['disableTrackInformation'];
+        $playerOptions['buffer'] = $options['buffer'];
+        $playerOptions['checkpolicy'] = $options['chkPolicy'];
+        $playerOptions['rtl'] = $options['rtlMode'];
 
-        return array_merge($playerOptions, $this->options["colorScheme"]);
+        return array_merge($playerOptions, $options["colorScheme"]);
     }
 
     /**
