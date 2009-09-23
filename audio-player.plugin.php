@@ -72,11 +72,7 @@ class HBAudioPlayer extends Plugin
      */
     public function help()
     {
-            return    ' <div style="color:red; font-weight: bold;">' . _t( 'THIS IS THE ONE AND ONLY RELEASE OF THIS PLUGIN FOR HABARI 0.6.
-                        THIS HAS NOT BEEN TESTED WITH EARLIER RELEASES AND GIVEN THE CHANGES WITH r3624 (SOON TO BE
-                        0.7) WILL NOT LIKELY BECOME AN OFFICIAL RELEASE FOR HABARI 0.6 AND EARLIER' ) . '</div>
-                        <br />
-                        <p>' . _t( 'HB Audio Player is a highly configurable but simple mp3 player
+            return    ' <p>' . _t( 'HB Audio Player is a highly configurable but simple mp3 player
                         for all your audio needs. You can customise the player\'s
                         colour scheme to match your blog theme, have it automatically
                         show track information from the encoded ID3 tags and more.' ) .'</p>
@@ -317,7 +313,7 @@ class HBAudioPlayer extends Plugin
                             $ui->feedfs->feedAlt->id = 'feedAlt';
                             $ui->feedfs->feedAlt->template = 'hbap_select';
                             $ui->feedfs->feedAlt->value = $options['feedAlt'];
-                            $ui->feedfs->feedAlt->options = array( 'download' => 'Download Link', 'nothing' => 'Nothing', 'custom' => 'Custom' );
+                            $ui->feedfs->feedAlt->options = array( 'download' => _t( 'Download Link' ), 'nothing' => _t( 'Nothing' ), 'custom' => _t( 'Custom' ) );
                             $ui->feedfs->feedAlt->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have three choices:<br /><br />
                                 <strong>Download link</strong>: Choose this if you are OK with subscribers downloading the file.<br />
                                 <strong>Nothing</strong>: Choose this if you feel that your feed shouldn\'t contain any reference to the audio file.<br />
@@ -326,7 +322,7 @@ class HBAudioPlayer extends Plugin
                             $ui->feedfs->feedCustom->value = $options['feedCustom'];
                             $ui->feedfs->feedCustom->pct = 80;
                             $ui->feedfs->feedCustom->id = 'feedCustom';
-                            if ( $options['feedAlt'] != 'cusom' ) {
+                            if ( $options['feedAlt'] != 'custom' ) {
                                 $ui->feedfs->feedCustom->disabled = TRUE;
                             }
 
