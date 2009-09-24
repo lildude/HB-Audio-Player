@@ -5,3 +5,4 @@ lib/js/audio-player.src.js
 lib/js/audio-player-admin.src.js
 .hgtags
 audio-player.plugin.xml
+EXCLUDE.lst.0.6.x
