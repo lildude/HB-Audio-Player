@@ -53,6 +53,22 @@ class HBAudioPlayer extends Plugin
                                     'transparentpagebg' => TRUE
                                 );
 
+	/**
+	* Provide plugin info to the system
+	*/
+	public function info()
+	{
+		return array(   'name' => 'HB Audio Player',
+						'version' => $this->version,
+						'url' => 'http://www.lildude.co.uk/projects/hb-audio-player',
+						'author' => 'Colin Seymour',
+						'authorurl' => 'http://colinseymour.co.uk/',
+						'license' => 'Apache License 2.0',
+						'description' => 'HB Audio Player is a highly configurable but simple Flash based MP3 player for Habari.',
+						'copyright' => '2009',
+		);
+	}
+
     /**
      * Beacon Support for Update checking
      *
