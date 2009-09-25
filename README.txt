@@ -87,6 +87,7 @@ FAQ
 REVISION HISTORY
 ----------------
 
+1.1		- Resolved misbehaviour caused by incorrect assumption about location of theme stylesheet
 1.0     - Initial release
 
 That's it folks. If you encounter any problems, please feel free to leave a comment on the post that relates to the release.
