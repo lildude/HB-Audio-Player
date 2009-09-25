@@ -31,7 +31,7 @@
 class HBAudioPlayer extends Plugin
 {
     private $options = array();
-    private $version = '1.0';
+    private $version = '1.1';
     const OPTNAME = 'hbaudioplayer__options';
     private static $defaultColors = array (
                                     'bg'                => 'E5E5E5',
