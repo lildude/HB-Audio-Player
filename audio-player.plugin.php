@@ -245,7 +245,7 @@ class HBAudioPlayer extends Plugin
                         $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width' ), 'hbap_text' );
                             $ui->appfs->width->value = $options['width'];
                             $ui->appfs->width->helptext = _t( 'You can enter a value in pixels (e.g. 200) or as a percentage (e.g. 100%)' );
-                        
+
                         $ui->appfs->append( 'select', 'fieldsel', 'null:null', _t( 'Colour Scheme Selector' ) );
                             $ui->appfs->fieldsel->id = 'fieldsel';
                             $ui->appfs->fieldsel->template = 'hbap_select';
@@ -266,18 +266,23 @@ class HBAudioPlayer extends Plugin
                                                     'border'            => _t( 'Progress Bar Border' ),
                                                     'skip'              => _t( 'Next/Previous Buttons' )
                                                     );
-                            $themeColorStr = '';
-                            foreach(self::getThemeColors() as $themeColor) {
-                                $themeColorStr .= "<li style='background:#{$themeColor}' title='#{$themeColor}'>#{$themeColor}</li>";
-                            }
-
-                            $ui->appfs->fieldsel->helptext = '<input name="colorvalue" type="text" id="colorvalue" size="10" maxlength="7" />
-                                                          <span id="colorsample"></span>
-                                                          <span id="themecolor-btn">'._t( 'Theme Colours' ). '</span>
-                                                          <div id="themecolor">
-                                                            <span>'._t( 'Theme Colours' ).'</span>
-                                                            <ul>'.$themeColorStr.'</ul></div><input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Color Scheme' ).'">';
-                        $ui->appfs->append( 'hidden', 'resetColors', 'null:null');
+							
+							$ui->appfs->fieldsel->helptext = '<input name="colorvalue" type="text" id="colorvalue" size="10" maxlength="7" />
+															  <span id="colorsample"></span>';
+							// IFF we've managed to find the theme/style.css file and parse it, we'll show the "Theme Colours" selection tool
+							$themeColors = self::getThemeColors();
+							if ( is_array( $themeColors ) && !empty( $themeColors ) ) {
+								$themeColorStr = '';
+								foreach(self::getThemeColors() as $themeColor) {
+									$themeColorStr .= "<li style='background:#{$themeColor}' title='#{$themeColor}'>#{$themeColor}</li>";
+								}
+                                $ui->appfs->fieldsel->helptext .= '<span id="themecolor-btn">'._t( 'Theme Colours' ). '</span>
+																	<div id="themecolor">
+																	<span>'._t( 'Theme Colours' ).'</span>
+																	<ul>'.$themeColorStr.'</ul></div>';
+							}
+							$ui->appfs->fieldsel->helptext .= '<input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Color Scheme' ).'">';
+						$ui->appfs->append( 'hidden', 'resetColors', 'null:null');
                             $ui->appfs->resetColors->id = 'resetColors';
                         $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
                             $ui->appfs->colour_selector_demo->append( 'static', 'demo', '
@@ -614,10 +619,14 @@ class HBAudioPlayer extends Plugin
      */
     private static function getThemeColors()
     {
-            $themeCssFile = Themes::get_active()->theme_dir.'style.css';
-            $theme_css = implode('', file( $themeCssFile ) );
+		$themeFile = Themes::get_active()->theme_dir . 'style.css';
+		if ( is_file( $themeFile ) ) {
+            $theme_css = implode('', file( $themeFile ) );
             preg_match_all('/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', strtoupper($theme_css), $matches);
             return array_unique($matches[1]);
+		} else {
+			return FALSE;
+		}
     }
 
     /**
