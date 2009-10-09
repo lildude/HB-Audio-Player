@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.0
+ * @version 1.1r84
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -31,7 +31,7 @@
 class HBAudioPlayer extends Plugin
 {
     private $options = array();
-    private $version = '1.1';
+    private $version = '1.1r84';
     const OPTNAME = 'hbaudioplayer__options';
     private static $defaultColors = array (
                                     'bg'                => 'E5E5E5',
@@ -347,7 +347,7 @@ class HBAudioPlayer extends Plugin
 
                     $ui->append( 'submit', 'save', _t( 'Save' ) );
                     $ui->on_success ( array( $this, 'storeOpts' ) );
-                    $ui->set_option( 'success_message', _t( 'Options saved.' ) );
+                    //$ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
 					$form_output = $ui->get();
 					echo '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js(self::getPlayerOptions()).');</script>';
 					echo $form_output;
@@ -395,6 +395,7 @@ class HBAudioPlayer extends Plugin
             }
         }
         Options::set( self::OPTNAME, $newOptions );
+		Session::notice('Options successfully saved.');
      }
 
     /**
