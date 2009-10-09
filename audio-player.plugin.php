@@ -345,9 +345,9 @@ class HBAudioPlayer extends Plugin
                             $ui->advfs->encode->value = $options['encode'];
                             $ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.' );
 
-                    $ui->append( 'submit', 'submit', _t( 'Save Options' ) );
+                    $ui->append( 'submit', 'save', _t( 'Save' ) );
                     $ui->on_success ( array( $this, 'storeOpts' ) );
-                    $ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
+                    $ui->set_option( 'success_message', _t( 'Options saved.' ) );
 					$form_output = $ui->get();
 					echo '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js(self::getPlayerOptions()).');</script>';
 					echo $form_output;
