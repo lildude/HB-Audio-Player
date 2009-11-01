@@ -395,7 +395,7 @@ class HBAudioPlayer extends Plugin
             }
         }
         Options::set( self::OPTNAME, $newOptions );
-		Session::notice('Options successfully saved.');
+		Session::notice( _t( 'Options saved.' ) );
      }
 
     /**
