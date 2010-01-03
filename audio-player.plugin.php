@@ -205,7 +205,7 @@ class HBAudioPlayer extends Plugin
             switch ( $action ) {
                 case _t( 'Configure' ):
                     $options = Options::get( self::OPTNAME );
-                    $ui = new FormUI( strtolower( get_class( $this ) ) );
+                    $ui = new FormUI( strtolower( __CLASS__ ) );
                     $ui->append( 'wrapper', 'colourselector', 'formcontrol' );
 
                     // First all the hidden settings
