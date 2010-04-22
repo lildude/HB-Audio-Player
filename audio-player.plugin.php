@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r90
+ * @version 1.1r91
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -445,8 +445,8 @@ class HBAudioPlayer extends Plugin
      */
     public function theme_header( $theme )
     {
-        Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
-        Stack::add( 'template_header_javascript', "AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js(self::getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
+        //Stack::add( 'template_header_javascript', URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js', 'audioplayer', 'jquery' );
+        //Stack::add( 'template_header_javascript', "AudioPlayer.setup('".URL::get_from_filesystem( __FILE__ )."/lib/player.swf',".self::php2js(self::getPlayerOptions()).");" ,'audioplayer-init', 'audioplayer');
     }
 
     /**
@@ -503,7 +503,13 @@ class HBAudioPlayer extends Plugin
         }
 
         $playerElementID = "audioplayer_$playerID";
-        $output = '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . _t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version' ) . '<a href="http://get.adobe.com/flashplayer/" title="' . _t( 'Download Adobe Flash Player') .'">' . _t( 'here' ) . '</a>.' . _t( ' You also need to have JavaScript enabled in your browser.' ).'</span>';
+		$output = '';
+		// Load the Javascript only on the pages/posts it's actually needed - some will argue about the problems with adding JS to the body of a doc like this, but we're using Flash already, so we can't be too pedantic :-)
+		if ( $playerID == 0 ) {
+			$output .= '<script type="text/javascript" src="' . URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js"></script>';
+			$output .= '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js(self::getPlayerOptions()).');</script>';
+		}
+        $output .= '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . _t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version' ) . '<a href="http://get.adobe.com/flashplayer/" title="' . _t( 'Download Adobe Flash Player') .'">' . _t( 'here' ) . '</a>.' . _t( ' You also need to have JavaScript enabled in your browser.' ).'</span>';
         $output .= '<script type="text/javascript">';
         $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js($playerOptions).' );';
         $output .= '</script></p>';
