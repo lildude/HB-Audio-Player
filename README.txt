@@ -1,5 +1,5 @@
 Plugin: HB Audio Player
-Version: 1.1r92
+Version: 1.1r93
 URL: http://www.lildude.co.uk/projects/hb-audio-player
 Plugin Author: Colin Seymour - http://colinseymour.co.uk
 Credit goes to: Martin Laine for the original WP Audio Player plugin from which this plugin has been ported.
