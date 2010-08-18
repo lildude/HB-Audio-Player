@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r93
+ * @version 1.1r94
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -61,59 +61,6 @@ class HBAudioPlayer extends Plugin
     public function action_update_check()
     {
         Update::add( 'HBAudioPlayer', '4031D1D4-5409-11DE-B1F6-65BE56D89593', $this->info->version );
-    }
-
-    /**
-     * The help message - it provides a larger explanation of what this plugin
-     * does
-     * 
-     * @return string
-     */
-    public function help()
-    {
-            return    ' <p>' . _t( 'HB Audio Player is a highly configurable but simple mp3 player
-                        for all your audio needs. You can customise the player\'s
-                        colour scheme to match your blog theme, have it automatically
-                        show track information from the encoded ID3 tags and more.' ) .'</p>
-                        <br />
-                        <strong>'. _t( 'Basic Usage: ') . '</strong><br />
-                        <p>' . _t( 'The default mechanism for inserting a player in a post is to use the [audio] syntax:' ) . '<br />
-                        
-                        <code>[audio:http://www.yourdomain.com/path/to/your_mp3_file.mp3]</code></p>
-
-                        <p>' . _t( 'This will insert a player and load your_mp3_file.mp3 into it.' ) .'</p>
-
-                        <p>' . _t( 'Multiple file can be specified by separating their paths/names with commas.' ) . '</p>
-
-                        <p>' . _t( 'You can configure HB Audio Player with a default audio files
-                        location so you don’t have to specify the full URL everytime.
-                        You can set this location via the Configuration panel. Once set, you
-                        can use this syntax:' ) . '<br />
-
-                        <code>[audio:your_mp3_file.mp3]</code></p>
-
-                        <p>' . _t( 'Audio Player will automatically look for the file in your default
-                        audio files location. This can be very handy if you decide to move
-                        all your audio files to a different location in the future.' ) . '</p>
-                        <br />
-                        <strong>'. _t( 'Advanced Usage:' ) . '</strong><br />
-
-                        <p>' . _t( 'By default, the player gets the track information from the ID3 tags
-                        of the mp3 file, however under some circumstances it won\'t be able to,
-                        for example if the file is on another domain.  This is a ') .'
-                        <a href="http://www.adobe.com/devnet/flashplayer/articles/cross_domain_policy.html">' ._t( 'restriction' ) .'</a>
-                        ' ._t( 'of the Flash player, but it can be over-ridden.') . '</p>
-
-                        <p>' . _t( 'You can however pass the artist and title information when inserting the
-                        player using the following syntax:' ) . '<br />
-
-                        <code>[audio:your_mp3_file.mp3|titles=The title|artists=The artist]</code></p>
-
-                        <p>' . _t( 'For multiple files:' ) . '<br />
-
-                        <code>[audio:mp3_file_1.mp3,mp3_file_2.mp3|titles=Title 1,Title 2|artists=Artist 1,Artist 2]</code></p>
-                        <br />
-                        <p><a href="'.URL::get( 'admin', array( 'page' => 'plugins', 'configure' => $this->plugin_id(), 'configaction' => _t( 'Configure' ) ) ) . '#plugin_options">' ._t( 'Configure' ) .'</a>' . _t( 'HB Audio Player now.' ) . '</p>';
     }
 
     /**
@@ -461,6 +408,7 @@ class HBAudioPlayer extends Plugin
      */
     public function action_init()
     {
+		$this->load_text_domain( 'audio-player' );
         Format::apply( 'processContentOut', 'post_content_out' );
         Format::apply( 'processContentSummary', 'post_content_summary' );
         Format::apply( 'processContentMore', 'post_content_more' );
