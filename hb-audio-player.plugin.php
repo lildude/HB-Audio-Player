@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r95
+ * @version 1.1r96
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -51,17 +51,6 @@ class HBAudioPlayer extends Plugin
                                     'pagebg'            => 'FFFFFF',
                                     'transparentpagebg' => TRUE
                                 );
-
-    /**
-     * Beacon Support for Update checking
-     *
-     * @access public
-     * @return void
-     **/
-    public function action_update_check()
-    {
-        Update::add( 'HBAudioPlayer', '4031D1D4-5409-11DE-B1F6-65BE56D89593', $this->info->version );
-    }
 
     /**
      * Plugin activation
