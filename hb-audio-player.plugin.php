@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r96
+ * @version 1.1r97
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -115,9 +115,7 @@ class HBAudioPlayer extends Plugin
      */
     public function filter_plugin_config( $actions, $plugin_id )
     {
-        if ( $plugin_id == $this->plugin_id() ) {
-            $actions[]= _t( 'Configure', 'audio-player' );
-        }
+		$actions['configure']= _t( 'Configure', 'audio-player' );
         return $actions;
     }
 
@@ -130,165 +128,159 @@ class HBAudioPlayer extends Plugin
      * @param string $action
      * @return void
      */
-    public function action_plugin_ui( $plugin_id, $action )
+    public function action_plugin_ui_configure( $plugin_id, $action )
     {
         $this->add_template( 'hbap_checkbox', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_checkbox.php' );
         $this->add_template( 'hbap_text', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_text.php' );
         $this->add_template( 'hbap_select', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_select.php' );
 
-        if ( $plugin_id == $this->plugin_id() ) {
-            switch ( $action ) {
-                case _t( 'Configure', 'audio-player' ):
-                    $options = Options::get( self::OPTNAME );
-                    $ui = new FormUI( strtolower( __CLASS__ ) );
-                    $ui->append( 'wrapper', 'colourselector', 'formcontrol' );
+		$options = Options::get( self::OPTNAME );
+		$ui = new FormUI( strtolower( __CLASS__ ) );
+		$ui->append( 'wrapper', 'colourselector', 'formcontrol' );
 
-                    // First all the hidden settings
-                    foreach( $options['colorScheme'] as $opt => $value ) {
-                        $ui->colourselector->append( 'hidden', "cs_".$opt, 'null:null' );
-                            $optn = "cs_$opt";
-                            if ( $optn == 'cs_pagebg' ) continue;
-                            $ui->colourselector->$optn->value = '#'.$value;
-                            $ui->colourselector->$optn->id = $optn."color";
-                    }
+		// First all the hidden settings
+		foreach( $options['colorScheme'] as $opt => $value ) {
+			$ui->colourselector->append( 'hidden', "cs_".$opt, 'null:null' );
+				$optn = "cs_$opt";
+				if ( $optn == 'cs_pagebg' ) continue;
+				$ui->colourselector->$optn->value = '#'.$value;
+				$ui->colourselector->$optn->id = $optn."color";
+		}
 
-                    if ( Plugins::is_loaded( 'Habari Media Silo' ) ) {
-                        // Get a list of all the directories available in the loaded Habari Silo
-                        $dirs = self::siloDirs();
-                        $dirs['custom'] = _t( 'Custom', 'audio-player' );
-                    }
-                    
-                    $ui->append( 'fieldset', 'genfs', _t( 'General', 'audio-player' ) );
-                        $ui->genfs->append( 'select', 'defaultPath', 'null:null', _t( 'Default Audio Path', 'audio-player' ) );
-                            $ui->genfs->defaultPath->template = 'hbap_select';
-                            $ui->genfs->defaultPath->id = 'defaultPath';
-                            $ui->genfs->defaultPath->pct = 80;
-                            $ui->genfs->defaultPath->value = $options['defaultPath'];
-                            $ui->genfs->defaultPath->helptext = _t( 'This is the default location for your audio files. When you use the [audio] syntax and don\'t provide an absolute URL for the mp3 file (the full URL including "http://") Audio Player will automatically look for the file in this location. You can set this to a folder located inside your blog folder structure or, alternatively, if you wish to store your audio files outside your blog (maybe even on a different server), choose "Custom" from the drop down and enter the absolute URL to that location.', 'audio-player' );
-                            $ui->genfs->defaultPath->options = $dirs;
+		if ( Plugins::is_loaded( 'Habari Media Silo' ) ) {
+			// Get a list of all the directories available in the loaded Habari Silo
+			$dirs = self::siloDirs();
+			$dirs['custom'] = _t( 'Custom', 'audio-player' );
+		}
+
+		$ui->append( 'fieldset', 'genfs', _t( 'General', 'audio-player' ) );
+			$ui->genfs->append( 'select', 'defaultPath', 'null:null', _t( 'Default Audio Path', 'audio-player' ) );
+				$ui->genfs->defaultPath->template = 'hbap_select';
+				$ui->genfs->defaultPath->id = 'defaultPath';
+				$ui->genfs->defaultPath->pct = 80;
+				$ui->genfs->defaultPath->value = $options['defaultPath'];
+				$ui->genfs->defaultPath->helptext = _t( 'This is the default location for your audio files. When you use the [audio] syntax and don\'t provide an absolute URL for the mp3 file (the full URL including "http://") Audio Player will automatically look for the file in this location. You can set this to a folder located inside your blog folder structure or, alternatively, if you wish to store your audio files outside your blog (maybe even on a different server), choose "Custom" from the drop down and enter the absolute URL to that location.', 'audio-player' );
+				$ui->genfs->defaultPath->options = $dirs;
 
 
-                       $ui->genfs->append( 'text', 'customPath', 'null:null', _t( 'Custom Audio Path:', 'audio-player' ), 'hbap_text' );
-                            $ui->genfs->customPath->value = $options['customPath'];
-                            $ui->genfs->customPath->pct = 80;
-                            $ui->genfs->customPath->id = 'customPath';
-                            if ( $options['defaultPath'] != 'custom' ) {
-                                $ui->genfs->customPath->disabled = TRUE;
-                            }
-                    
-                    $ui->append( 'fieldset', 'appfs', _t( 'Appearance', 'audio-player' ) );
-                        $ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width', 'audio-player' ), 'hbap_text' );
-                            $ui->appfs->width->value = $options['width'];
-                            $ui->appfs->width->helptext = _t( 'You can enter a value in pixels (e.g. 200) or as a percentage (e.g. 100%)', 'audio-player' );
+		   $ui->genfs->append( 'text', 'customPath', 'null:null', _t( 'Custom Audio Path:', 'audio-player' ), 'hbap_text' );
+				$ui->genfs->customPath->value = $options['customPath'];
+				$ui->genfs->customPath->pct = 80;
+				$ui->genfs->customPath->id = 'customPath';
+				if ( $options['defaultPath'] != 'custom' ) {
+					$ui->genfs->customPath->disabled = TRUE;
+				}
 
-                        $ui->appfs->append( 'select', 'fieldsel', 'null:null', _t( 'Colour Scheme Selector', 'audio-player' ) );
-                            $ui->appfs->fieldsel->id = 'fieldsel';
-                            $ui->appfs->fieldsel->template = 'hbap_select';
-                            $ui->appfs->fieldsel->options = array (
-                                                    'bg'                => _t( 'Background', 'audio-player' ),
-                                                    'leftbg'            => _t( 'Left Background', 'audio-player' ),
-                                                    'lefticon'          => _t( 'Left Icon', 'audio-player' ),
-                                                    'volslider'         => _t( 'Volume Control Slider', 'audio-player' ),
-                                                    'voltrack'          => _t( 'Volume Control Track', 'audio-player' ),
-                                                    'rightbg'           => _t( 'Right Background', 'audio-player' ),
-                                                    'rightbghover'      => _t( 'Right Background (hover)', 'audio-player' ),
-                                                    'righticon'         => _t( 'Right Icon', 'audio-player' ),
-                                                    'righticonhover'    => _t( 'Right Icon (hover)', 'audio-player' ),
-                                                    'text'              => _t( 'Text', 'audio-player' ),
-                                                    'track'             => _t( 'Progress Bar Track', 'audio-player' ),
-                                                    'tracker'           => _t( 'Progress Bar', 'audio-player' ),
-                                                    'loader'            => _t( 'Loading Bar', 'audio-player' ),
-                                                    'border'            => _t( 'Progress Bar Border', 'audio-player' ),
-                                                    'skip'              => _t( 'Next/Previous Buttons', 'audio-player' )
-                                                    );
-							
-							$ui->appfs->fieldsel->helptext = '<input name="colorvalue" type="text" id="colorvalue" size="10" maxlength="7" />
-															  <span id="colorsample"></span>';
-							// IFF we've managed to find the theme/style.css file and parse it, we'll show the "Theme Colours" selection tool
-							$themeColors = self::getThemeColors();
-							if ( is_array( $themeColors ) && !empty( $themeColors ) ) {
-								$themeColorStr = '';
-								foreach(self::getThemeColors() as $themeColor) {
-									$themeColorStr .= "<li style='background:#{$themeColor}' title='#{$themeColor}'>#{$themeColor}</li>";
-								}
-                                $ui->appfs->fieldsel->helptext .= '<span id="themecolor-btn">'._t( 'Theme Colours', 'audio-player' ). '</span>
-																	<div id="themecolor">
-																	<span>'._t( 'Theme Colours', 'audio-player' ).'</span>
-																	<ul>'.$themeColorStr.'</ul></div>';
-							}
-							$ui->appfs->fieldsel->helptext .= '<input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Color Scheme', 'audio-player' ).'">';
-						$ui->appfs->append( 'hidden', 'resetColors', 'null:null');
-                            $ui->appfs->resetColors->id = 'resetColors';
-                        $ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
-                            $ui->appfs->colour_selector_demo->append( 'static', 'demo', '
-                                <div id="demoplayer">Audio Player</div>
-                                <script type="text/javascript">
-                                AudioPlayer.embed("demoplayer", {demomode:"yes"});
-                                </script>
-                            ');
-                        $ui->appfs->append( 'text', 'cs_pagebg', 'null:null', _t( 'Page Background', 'audio-player' ), 'hbap_text' );
-                            $ui->appfs->cs_pagebg->value = '#'.$options['colorScheme']['pagebg'];
-                            $ui->appfs->cs_pagebg->id = 'cs_pagebg';
-                            if ($options['colorScheme']['transparentpagebg']) {
-                                $ui->appfs->cs_pagebg->disabled = TRUE;
-                            }
-                            $ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).', 'audio-player' );
-                        $ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background', 'audio-player' ) );
-                            $ui->appfs->cs_transparentpagebg->value = $options['colorScheme']['transparentpagebg'];
-                        $ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation', 'audio-player' ), 'hbap_checkbox' );
-                            $ui->appfs->enableAnimation->value = $options['enableAnimation'];
-                            $ui->appfs->enableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.', 'audio-player' );
-                        $ui->appfs->append( 'checkbox', 'showRemaining', 'null:null', _t( 'Show Remaining', 'audio-player' ), 'hbap_checkbox' );
-                            $ui->appfs->showRemaining->value = $options['showRemaining'];
-                            $ui->appfs->showRemaining->helptext = _t( 'This will make the time display count down rather than up.', 'audio-player' );
-                        $ui->appfs->append( 'checkbox', 'disableTrackInformation', 'null:null', _t( 'Disable Track Information', 'audio-player' ), 'hbap_checkbox' );
-                            $ui->appfs->disableTrackInformation->value = $options['disableTrackInformation'];
-                            $ui->appfs->disableTrackInformation->helptext = _t( 'Select this if you wish to disable track information display (the player won\'t show titles or artist names even if they are available.)', 'audio-player' );
-                        $ui->appfs->append( 'checkbox', 'rtlMode', 'null:null', _t( 'Switch to RTL Layout', 'audio-player' ), 'hbap_checkbox' );
-                            $ui->appfs->rtlMode->value = $options['rtlMode'];
-                            $ui->appfs->rtlMode->helptext = _t( 'Select this to switch the player layout to RTL mode (right to left) for Arabic and Hebrew language blogs.', 'audio-player' );
-                    
-                    $ui->append( 'fieldset', 'feedfs', _t( 'Feed', 'audio-player' ) );
-                        $ui->feedfs->append( 'select', 'feedAlt', 'null:null', _t( 'Alternate Content', 'audio-player' ) );
-                            $ui->feedfs->feedAlt->id = 'feedAlt';
-                            $ui->feedfs->feedAlt->template = 'hbap_select';
-                            $ui->feedfs->feedAlt->value = $options['feedAlt'];
-                            $ui->feedfs->feedAlt->options = array( 'download' => _t( 'Download Link', 'audio-player' ), 'nothing' => _t( 'Nothing', 'audio-player' ), 'custom' => _t( 'Custom', 'audio-player' ) );
-                            $ui->feedfs->feedAlt->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have three choices:<br /><br />
-                                <strong>Download link</strong>: Choose this if you are OK with subscribers downloading the file.<br />
-                                <strong>Nothing</strong>: Choose this if you feel that your feed shouldn\'t contain any reference to the audio file.<br />
-                                <strong>Custom</strong>: Choose this to use your own alternative content for all player instances. You can use this option to tell subscribers that they can listen to the audio file if they read the post on your blog.', 'audio-player' );
-                        $ui->feedfs->append( 'text', 'feedCustom', 'null:null', _t( 'Custom alternate content', 'audio-player' ), 'hbap_text' );
-                            $ui->feedfs->feedCustom->value = $options['feedCustom'];
-                            $ui->feedfs->feedCustom->pct = 80;
-                            $ui->feedfs->feedCustom->id = 'feedCustom';
-                            if ( $options['feedAlt'] != 'custom' ) {
-                                $ui->feedfs->feedCustom->disabled = TRUE;
-                            }
+		$ui->append( 'fieldset', 'appfs', _t( 'Appearance', 'audio-player' ) );
+			$ui->appfs->append( 'text', 'width', 'null:null', _t( 'Player Width', 'audio-player' ), 'hbap_text' );
+				$ui->appfs->width->value = $options['width'];
+				$ui->appfs->width->helptext = _t( 'You can enter a value in pixels (e.g. 200) or as a percentage (e.g. 100%)', 'audio-player' );
 
-                    $ui->append( 'fieldset', 'advfs', _t( 'Advanced', 'audio-player' ) );
-                        $ui->advfs->append( 'text', 'initVol', 'null:null', _t( 'Initial Volume', 'audio-player' ), 'hbap_text' );
-                            $ui->advfs->initVol->value = $options['initVol'];
-                            $ui->advfs->initVol->helptext = _t( 'This is the volume at which the player defaults to (0 is off, 100 is full volume)', 'audio-player' );
-                        $ui->advfs->append( 'text', 'buffer', 'null:null', _t( 'Buffer time (in seconds)', 'audio-player' ), 'hbap_text' );
-                            $ui->advfs->buffer->value = $options['buffer'];
-                            $ui->advfs->buffer->helptext = _t( 'If you think your target audience is likely to have a slow internet connection, you can increase the player\'s buffering time (for standard broadband connections, 5 seconds is enough)', 'audio-player' );
-                        $ui->advfs->append( 'checkbox', 'chkPolicy', 'null:null', _t( 'Check for policy file', 'audio-player' ), 'hbap_checkbox' );
-                            $ui->advfs->chkPolicy->value = $options['chkPolicy'];
-                            $ui->advfs->chkPolicy->helptext = _t( 'Enable this to tell Audio Player to check for a policy file on the server. This allows Flash to read ID3 tags on remote servers. Only enable this if all your mp3 files are located on a server with a policy file.', 'audio-player' );
-                        $ui->advfs->append( 'checkbox', 'encode', 'null:null', _t( 'Encode MP3 URLs', 'audio-player' ), 'hbap_checkbox' );
-                            $ui->advfs->encode->value = $options['encode'];
-                            $ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.', 'audio-player' );
+			$ui->appfs->append( 'select', 'fieldsel', 'null:null', _t( 'Colour Scheme Selector', 'audio-player' ) );
+				$ui->appfs->fieldsel->id = 'fieldsel';
+				$ui->appfs->fieldsel->template = 'hbap_select';
+				$ui->appfs->fieldsel->options = array (
+										'bg'                => _t( 'Background', 'audio-player' ),
+										'leftbg'            => _t( 'Left Background', 'audio-player' ),
+										'lefticon'          => _t( 'Left Icon', 'audio-player' ),
+										'volslider'         => _t( 'Volume Control Slider', 'audio-player' ),
+										'voltrack'          => _t( 'Volume Control Track', 'audio-player' ),
+										'rightbg'           => _t( 'Right Background', 'audio-player' ),
+										'rightbghover'      => _t( 'Right Background (hover)', 'audio-player' ),
+										'righticon'         => _t( 'Right Icon', 'audio-player' ),
+										'righticonhover'    => _t( 'Right Icon (hover)', 'audio-player' ),
+										'text'              => _t( 'Text', 'audio-player' ),
+										'track'             => _t( 'Progress Bar Track', 'audio-player' ),
+										'tracker'           => _t( 'Progress Bar', 'audio-player' ),
+										'loader'            => _t( 'Loading Bar', 'audio-player' ),
+										'border'            => _t( 'Progress Bar Border', 'audio-player' ),
+										'skip'              => _t( 'Next/Previous Buttons', 'audio-player' )
+										);
 
-                    $ui->append( 'submit', 'save', _t( 'Save', 'audio-player' ) );
-                    $ui->on_success ( array( $this, 'storeOpts' ) );
-                    //$ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
-					$form_output = $ui->get();
-					echo '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js(self::getPlayerOptions()).');</script>';
-					echo $form_output;
-                break;
-            }
-        }
+				$ui->appfs->fieldsel->helptext = '<input name="colorvalue" type="text" id="colorvalue" size="10" maxlength="7" />
+												  <span id="colorsample"></span>';
+				// IFF we've managed to find the theme/style.css file and parse it, we'll show the "Theme Colours" selection tool
+				$themeColors = self::getThemeColors();
+				if ( is_array( $themeColors ) && !empty( $themeColors ) ) {
+					$themeColorStr = '';
+					foreach(self::getThemeColors() as $themeColor) {
+						$themeColorStr .= "<li style='background:#{$themeColor}' title='#{$themeColor}'>#{$themeColor}</li>";
+					}
+					$ui->appfs->fieldsel->helptext .= '<span id="themecolor-btn">'._t( 'Theme Colours', 'audio-player' ). '</span>
+														<div id="themecolor">
+														<span>'._t( 'Theme Colours', 'audio-player' ).'</span>
+														<ul>'.$themeColorStr.'</ul></div>';
+				}
+				$ui->appfs->fieldsel->helptext .= '<input type="button" class="submit" id="doresetcolors" value="'._t( 'Reset Color Scheme', 'audio-player' ).'">';
+			$ui->appfs->append( 'hidden', 'resetColors', 'null:null');
+				$ui->appfs->resetColors->id = 'resetColors';
+			$ui->appfs->append( 'wrapper', 'colour_selector_demo', 'formcontrol' );
+				$ui->appfs->colour_selector_demo->append( 'static', 'demo', '
+					<div id="demoplayer">Audio Player</div>
+					<script type="text/javascript">
+					AudioPlayer.embed("demoplayer", {demomode:"yes"});
+					</script>
+				');
+			$ui->appfs->append( 'text', 'cs_pagebg', 'null:null', _t( 'Page Background', 'audio-player' ), 'hbap_text' );
+				$ui->appfs->cs_pagebg->value = '#'.$options['colorScheme']['pagebg'];
+				$ui->appfs->cs_pagebg->id = 'cs_pagebg';
+				if ($options['colorScheme']['transparentpagebg']) {
+					$ui->appfs->cs_pagebg->disabled = TRUE;
+				}
+				$ui->appfs->cs_pagebg->helptext =  _t( 'In most cases, simply select "transparent" and it will match the background of your page. In some rare cases, the player will stop working in Firefox if you use the transparent option. If this happens, untick the transparent box and enter the color of your page background in the box below (in the vast majority of cases, it will be white: #FFFFFF).', 'audio-player' );
+			$ui->appfs->append( 'checkbox', 'cs_transparentpagebg', 'null:null', _t( 'Transparent Page Background', 'audio-player' ) );
+				$ui->appfs->cs_transparentpagebg->value = $options['colorScheme']['transparentpagebg'];
+			$ui->appfs->append( 'checkbox', 'enableAnimation', 'null:null', _t( 'Enable Animation', 'audio-player' ), 'hbap_checkbox' );
+				$ui->appfs->enableAnimation->value = $options['enableAnimation'];
+				$ui->appfs->enableAnimation->helptext = _t('If you don\'t like the open/close animation, you can disable it here.', 'audio-player' );
+			$ui->appfs->append( 'checkbox', 'showRemaining', 'null:null', _t( 'Show Remaining', 'audio-player' ), 'hbap_checkbox' );
+				$ui->appfs->showRemaining->value = $options['showRemaining'];
+				$ui->appfs->showRemaining->helptext = _t( 'This will make the time display count down rather than up.', 'audio-player' );
+			$ui->appfs->append( 'checkbox', 'disableTrackInformation', 'null:null', _t( 'Disable Track Information', 'audio-player' ), 'hbap_checkbox' );
+				$ui->appfs->disableTrackInformation->value = $options['disableTrackInformation'];
+				$ui->appfs->disableTrackInformation->helptext = _t( 'Select this if you wish to disable track information display (the player won\'t show titles or artist names even if they are available.)', 'audio-player' );
+			$ui->appfs->append( 'checkbox', 'rtlMode', 'null:null', _t( 'Switch to RTL Layout', 'audio-player' ), 'hbap_checkbox' );
+				$ui->appfs->rtlMode->value = $options['rtlMode'];
+				$ui->appfs->rtlMode->helptext = _t( 'Select this to switch the player layout to RTL mode (right to left) for Arabic and Hebrew language blogs.', 'audio-player' );
+
+		$ui->append( 'fieldset', 'feedfs', _t( 'Feed', 'audio-player' ) );
+			$ui->feedfs->append( 'select', 'feedAlt', 'null:null', _t( 'Alternate Content', 'audio-player' ) );
+				$ui->feedfs->feedAlt->id = 'feedAlt';
+				$ui->feedfs->feedAlt->template = 'hbap_select';
+				$ui->feedfs->feedAlt->value = $options['feedAlt'];
+				$ui->feedfs->feedAlt->options = array( 'download' => _t( 'Download Link', 'audio-player' ), 'nothing' => _t( 'Nothing', 'audio-player' ), 'custom' => _t( 'Custom', 'audio-player' ) );
+				$ui->feedfs->feedAlt->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have three choices:<br /><br />
+					<strong>Download link</strong>: Choose this if you are OK with subscribers downloading the file.<br />
+					<strong>Nothing</strong>: Choose this if you feel that your feed shouldn\'t contain any reference to the audio file.<br />
+					<strong>Custom</strong>: Choose this to use your own alternative content for all player instances. You can use this option to tell subscribers that they can listen to the audio file if they read the post on your blog.', 'audio-player' );
+			$ui->feedfs->append( 'text', 'feedCustom', 'null:null', _t( 'Custom alternate content', 'audio-player' ), 'hbap_text' );
+				$ui->feedfs->feedCustom->value = $options['feedCustom'];
+				$ui->feedfs->feedCustom->pct = 80;
+				$ui->feedfs->feedCustom->id = 'feedCustom';
+				if ( $options['feedAlt'] != 'custom' ) {
+					$ui->feedfs->feedCustom->disabled = TRUE;
+				}
+
+		$ui->append( 'fieldset', 'advfs', _t( 'Advanced', 'audio-player' ) );
+			$ui->advfs->append( 'text', 'initVol', 'null:null', _t( 'Initial Volume', 'audio-player' ), 'hbap_text' );
+				$ui->advfs->initVol->value = $options['initVol'];
+				$ui->advfs->initVol->helptext = _t( 'This is the volume at which the player defaults to (0 is off, 100 is full volume)', 'audio-player' );
+			$ui->advfs->append( 'text', 'buffer', 'null:null', _t( 'Buffer time (in seconds)', 'audio-player' ), 'hbap_text' );
+				$ui->advfs->buffer->value = $options['buffer'];
+				$ui->advfs->buffer->helptext = _t( 'If you think your target audience is likely to have a slow internet connection, you can increase the player\'s buffering time (for standard broadband connections, 5 seconds is enough)', 'audio-player' );
+			$ui->advfs->append( 'checkbox', 'chkPolicy', 'null:null', _t( 'Check for policy file', 'audio-player' ), 'hbap_checkbox' );
+				$ui->advfs->chkPolicy->value = $options['chkPolicy'];
+				$ui->advfs->chkPolicy->helptext = _t( 'Enable this to tell Audio Player to check for a policy file on the server. This allows Flash to read ID3 tags on remote servers. Only enable this if all your mp3 files are located on a server with a policy file.', 'audio-player' );
+			$ui->advfs->append( 'checkbox', 'encode', 'null:null', _t( 'Encode MP3 URLs', 'audio-player' ), 'hbap_checkbox' );
+				$ui->advfs->encode->value = $options['encode'];
+				$ui->advfs->encode->helptext = _t( 'Enable this to encode the URLs to your mp3 files. This is the only protection possible against people downloading the mp3 file to their computers.', 'audio-player' );
+
+		$ui->append( 'submit', 'save', _t( 'Save', 'audio-player' ) );
+		$ui->on_success ( array( $this, 'storeOpts' ) );
+		//$ui->set_option( 'success_message', _t( 'Options successfully saved.' ) );
+		$form_output = $ui->get();
+		echo '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js(self::getPlayerOptions()).');</script>';
+		echo $form_output;
     }
 
     /**
