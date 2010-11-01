@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r97
+ * @version 1.1r98
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -128,7 +128,7 @@ class HBAudioPlayer extends Plugin
      * @param string $action
      * @return void
      */
-    public function action_plugin_ui_configure( $plugin_id, $action )
+    public function action_plugin_ui_configure()
     {
         $this->add_template( 'hbap_checkbox', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_checkbox.php' );
         $this->add_template( 'hbap_text', dirname( $this->get_file() ) . '/lib/formcontrols/hbap_text.php' );
