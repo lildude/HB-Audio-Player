@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r98
+ * @version 1.1r99
  * @author Colin Seymour - http://www.colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://www.lildude.co.uk/projects/hb-audio-player
@@ -124,8 +124,6 @@ class HBAudioPlayer extends Plugin
      * Plugin UI
      *
      * @access public
-     * @param string $plugin_id
-     * @param string $action
      * @return void
      */
     public function action_plugin_ui_configure()
