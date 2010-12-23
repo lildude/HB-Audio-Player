@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r100
+ * @version 1.1r101
  * @author Colin Seymour - http://colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://lildude.co.uk/projects/hb-audio-player
@@ -246,10 +246,11 @@ class HBAudioPlayer extends Plugin
 				$ui->feedfs->feedAlt->id = 'feedAlt';
 				$ui->feedfs->feedAlt->template = 'hbap_select';
 				$ui->feedfs->feedAlt->value = $options['feedAlt'];
-				$ui->feedfs->feedAlt->options = array( 'download' => _t( 'Download Link', 'audio-player' ), 'nothing' => _t( 'Nothing', 'audio-player' ), 'custom' => _t( 'Custom', 'audio-player' ) );
-				$ui->feedfs->feedAlt->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have three choices:<br /><br />
-					<strong>Download link</strong>: Choose this if you are OK with subscribers downloading the file.<br />
-					<strong>Nothing</strong>: Choose this if you feel that your feed shouldn\'t contain any reference to the audio file.<br />
+				$ui->feedfs->feedAlt->options = array( 'enclosure' => _t( 'Enclosure', 'audio-player' ), 'download' => _t( 'Download Link', 'audio-player' ), 'nothing' => _t( 'Nothing', 'audio-player' ), 'custom' => _t( 'Custom', 'audio-player' ) );
+				$ui->feedfs->feedAlt->helptext = _t( 'The following options determine what is included in your feeds. The plugin doesn\'t place a player instance in the feed. Instead, you can choose what the plugin inserts. You have four choices:<br /><br />
+					<strong>Enclosure</strong>: Choose this if you want your audio file included as an enclosure in your feed.<br>
+					<strong>Download link</strong>: Choose this if you are OK with subscribers downloading the file.<br>
+					<strong>Nothing</strong>: Choose this if you feel that your feed shouldn\'t contain any reference to the audio file.<br>
 					<strong>Custom</strong>: Choose this to use your own alternative content for all player instances. You can use this option to tell subscribers that they can listen to the audio file if they read the post on your blog.', 'audio-player' );
 			$ui->feedfs->append( 'text', 'feedCustom', 'null:null', _t( 'Custom alternate content', 'audio-player' ), 'hbap_text' );
 				$ui->feedfs->feedCustom->value = $options['feedCustom'];
@@ -450,13 +451,15 @@ class HBAudioPlayer extends Plugin
 	 *
 	 * @param array $matches from callback function
 	 * @return string
+	 * @todo This doesn't seem to work anymore on 0.7
      */
     private static function insertPlayerAtom( $matches )
     {
         $options = Options::get( self::OPTNAME );
         list( $files, $data ) = self::getfileData( $matches );
 
-        switch ( $options['feedAlt'] ) {
+		switch ( $options['feedAlt'] ) {
+			case "enclosure":	// This does nothing here as the enclosure is added with the action_atom_add_post() below
             case "nothing":
                 $output = '';
                 break;
@@ -474,6 +477,26 @@ class HBAudioPlayer extends Plugin
         }
         return $output;
     }
+
+	/**
+	 * If "enclosure" is selected, add the audio file it to the feed
+	 * @param $feed_entry. String. The entry as it will appear in the feed.
+	 * @param $post. Post. The post that is providing the content for the feed entry.
+	 * @todo Find out if size is required and if so, find a good method of determining this
+	 */
+	public function action_atom_add_post( $feed_entry, $post )
+	{
+		preg_match_all( '#\[audio:(([^]]+))\]#', $post->content, $matches );
+		foreach ($matches[1] as $episode ) {
+			//$size = filesize($episode);
+			$enclosure = $feed_entry->addChild( 'link' );
+			$enclosure->addAttribute( 'title', 'Enclosure' );
+			$enclosure->addAttribute( 'rel', 'enclosure' );
+			$enclosure->addAttribute( 'href', $episode );
+			//$enclosure->addAttribute( 'length', $size );
+			$enclosure->addAttribute( 'type', 'audio/mpeg' );
+		}
+	}
 
     /**
      * Insert player into post_content_excerpt.
