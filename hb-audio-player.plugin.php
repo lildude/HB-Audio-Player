@@ -21,10 +21,10 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r99
- * @author Colin Seymour - http://www.colinseymour.co.uk
+ * @version 1.1r100
+ * @author Colin Seymour - http://colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
- * @link http://www.lildude.co.uk/projects/hb-audio-player
+ * @link http://lildude.co.uk/projects/hb-audio-player
  *
  */
 
@@ -101,7 +101,7 @@ class HBAudioPlayer extends Plugin
     public function action_plugin_deactivation( $file )
     {
         if ( realpath( $file ) == __FILE__ ) {
-           Options::delete(self::OPTNAME);
+           //Options::delete(self::OPTNAME);
         }
     }
 
@@ -436,7 +436,7 @@ class HBAudioPlayer extends Plugin
 			$output .= '<script type="text/javascript" src="' . URL::get_from_filesystem( __FILE__ ) . '/lib/js/audio-player.js"></script>';
 			$output .= '<script type="text/javascript">AudioPlayer.setup("'.URL::get_from_filesystem( __FILE__ ).'/lib/player.swf",'.self::php2js(self::getPlayerOptions()).');</script>';
 		}
-        $output .= '<p class="audioplayer_container"><span style="display:block;padding:5px;border:1px solid #dddddd;background:#f8f8f8" id="' . $playerElementID . '">' . _t( 'Audio clip: Adobe Flash Player (version 9 or above) is required to play this audio clip. Download the latest version' ) . '<a href="http://get.adobe.com/flashplayer/" title="' . _t( 'Download Adobe Flash Player') .'"> ' . _t( 'here' ) . '</a>.' . _t( ' You also need to have JavaScript enabled in your browser.' ).'</span>';
+        $output .= '<p class="audioplayer_container"><span style="display:block" id="' . $playerElementID . '"><!-- [audio:'.$data[0].'] --></span>';
         $output .= '<script type="text/javascript">';
         $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js( $playerOptions ).' );';
         $output .= '</script></p>';
