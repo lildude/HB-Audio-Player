@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r102
+ * @version 1.1r103
  * @author Colin Seymour - http://colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://lildude.co.uk/projects/hb-audio-player
@@ -448,7 +448,7 @@ class HBAudioPlayer extends Plugin
         $output .= 'AudioPlayer.embed("' . $playerElementID . '", '.self::php2js( $playerOptions ).' );';
         $output .= '</script></p>';
         $playerID++;
-        
+
         return $output;
     }
 
@@ -511,13 +511,25 @@ class HBAudioPlayer extends Plugin
 		if ( $options['feedAlt'] == 'enclosure' ) {
 			preg_match_all( '#\[audio:(([^]]+))\]#', $post->content, $matches );
 			foreach ( $matches[1] as $episode ) {
-				//$size = filesize($episode);
+				// Get the file header info and cache the data for 7 days
+				/* Commented out as it's too slow and it appears the size isn't essential
+				if ( Cache::has( 'HEAD_'.$episode ) ) {
+					$headers = Cache::get( 'HEAD_'.$episode );
+				} else {
+					$r = new RemoteRequest( $episode, 'HEAD');
+					if ( $r->execute() ) {
+						$headers = $r->get_response_headers();
+					}
+					Cache::set( 'HEAD_'.$episode, $headers, 604800 );	// Cache for 7 days
+				} */
 				$enclosure = $feed_entry->addChild( 'link' );
 				$enclosure->addAttribute( 'title', 'Enclosure' );
 				$enclosure->addAttribute( 'rel', 'enclosure' );
 				$enclosure->addAttribute( 'href', $episode );
-				//$enclosure->addAttribute( 'length', $size );
-				$enclosure->addAttribute( 'type', 'audio/mpeg' );
+				/* if ( isset( $headers ) ) {
+					$enclosure->addAttribute( 'length', $headers['Content-Length'] );
+				}*/
+				$enclosure->addAttribute( 'type', isset( $headers ) ? $headers['Content-Type'] : 'audio/mpeg' );
 			}
 		}
 	}
