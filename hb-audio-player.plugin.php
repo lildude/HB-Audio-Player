@@ -21,7 +21,7 @@
  * by Martin Laine.
  *
  * @package HBAudioPlayer
- * @version 1.1r101
+ * @version 1.1r102
  * @author Colin Seymour - http://colinseymour.co.uk
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0 (unless otherwise stated)
  * @link http://lildude.co.uk/projects/hb-audio-player
@@ -389,29 +389,35 @@ class HBAudioPlayer extends Plugin
     public function action_init()
     {
 		$this->load_text_domain( 'audio-player' );
-        Format::apply( 'processContentOut', 'post_content_out' );
-        Format::apply( 'processContentSummary', 'post_content_summary' );
-        Format::apply( 'processContentMore', 'post_content_more' );
-        Format::apply( 'processContentExcerpt', 'post_content_excerpt' );
-        Format::apply( 'processContentAtom', 'post_content_atom' );
     }
 
+	/**
+	 * Alias all the filter outputs that we want the single function to apply to.
+	 *
+	 * @return array
+	 */
+	public function alias()
+	{
+		return array(
+			'processContent' => array( 'filter_post_content_out', 'filter_post_content_excerpt', 'filter_post_content_summary' )
+		);
+	}
+
     /**
-     * Replace any instance of the [audio:] tag with the media player.
-     *
-     * We do this here so we can use class instance variables and private functions.
+     * Replace any instance of the [audio:] tag with the media player with the
+	 * output produced by the callback function.
      *
      * @access public
      * @param string $content
      * @return string
      */
-    public function filter_processContent ( $content, $function )
-    {
-        return preg_replace_callback( '#\[audio:(([^]]+))\]#', array( 'self', 'insertPlayer'.$function ), $content );
-    }
+	public function processContent( $content )
+	{
+		return preg_replace_callback( '#\[audio:(([^]]+))\]#', array( 'self', 'insertPlayerOut' ), $content );
+	}
 
     /**
-     * Insert player into post_content_out.
+     * Insert player into post content.
 	 *
 	 * @param array $matches from callback function
 	 * @return string
@@ -446,12 +452,22 @@ class HBAudioPlayer extends Plugin
         return $output;
     }
 
+	/**
+	 * Replace all [audio:] tags in the feed content with the desired output.
+	 * 
+	 * @param string $content
+	 * @return string 
+	 */
+	public function filter_post_content_atom( $content )
+	{
+		return preg_replace_callback( '#\[audio:(([^]]+))\]#', array( 'self', 'insertPlayerAtom' ), $content );
+	}
+	
     /**
      * Insert player into post_content_atom.
 	 *
 	 * @param array $matches from callback function
 	 * @return string
-	 * @todo This doesn't seem to work anymore on 0.7
      */
     private static function insertPlayerAtom( $matches )
     {
@@ -459,86 +475,54 @@ class HBAudioPlayer extends Plugin
         list( $files, $data ) = self::getfileData( $matches );
 
 		switch ( $options['feedAlt'] ) {
-			case "enclosure":	// This does nothing here as the enclosure is added with the action_atom_add_post() below
-            case "nothing":
+			case 'enclosure':
+				$output = '[ ' . _t( 'Audio file attached' ) . ' ]';
+				break;
+            case 'nothing':
                 $output = '';
                 break;
-            case "download":
+            case 'download':
                 $output = '';
                 for ( $i = 0; $i < count( $files ); $i++ ) {
-                    $fileparts = explode( "/", $files[$i] );
+                    $fileparts = explode( '/', $files[$i] );
                     $fileName = $fileparts[count( $fileparts )-1];
-                    $output .= '<a href="' . $files[$i] . '">' . _t('Download audio file') . ' (' . $fileName . ')</a><br />';
+                    $output .= '<a href="' . $files[$i] . '">' . _t( 'Download audio file' ) . ' (' . $fileName . ')</a><br />';
                 }
                 break;
-            case "custom":
+            case 'custom':
                 $output = $options['feedCustom'];
                 break;
         }
         return $output;
     }
 
+
+
 	/**
 	 * If "enclosure" is selected, add the audio file it to the feed
+	 *
 	 * @param $feed_entry. String. The entry as it will appear in the feed.
 	 * @param $post. Post. The post that is providing the content for the feed entry.
 	 * @todo Find out if size is required and if so, find a good method of determining this
 	 */
 	public function action_atom_add_post( $feed_entry, $post )
 	{
-		preg_match_all( '#\[audio:(([^]]+))\]#', $post->content, $matches );
-		foreach ($matches[1] as $episode ) {
-			//$size = filesize($episode);
-			$enclosure = $feed_entry->addChild( 'link' );
-			$enclosure->addAttribute( 'title', 'Enclosure' );
-			$enclosure->addAttribute( 'rel', 'enclosure' );
-			$enclosure->addAttribute( 'href', $episode );
-			//$enclosure->addAttribute( 'length', $size );
-			$enclosure->addAttribute( 'type', 'audio/mpeg' );
+		$options = Options::get( self::OPTNAME );
+		if ( $options['feedAlt'] == 'enclosure' ) {
+			preg_match_all( '#\[audio:(([^]]+))\]#', $post->content, $matches );
+			foreach ( $matches[1] as $episode ) {
+				//$size = filesize($episode);
+				$enclosure = $feed_entry->addChild( 'link' );
+				$enclosure->addAttribute( 'title', 'Enclosure' );
+				$enclosure->addAttribute( 'rel', 'enclosure' );
+				$enclosure->addAttribute( 'href', $episode );
+				//$enclosure->addAttribute( 'length', $size );
+				$enclosure->addAttribute( 'type', 'audio/mpeg' );
+			}
 		}
 	}
 
-    /**
-     * Insert player into post_content_excerpt.
-	 *
-	 * @param array $matches from callback function
-	 * @return string
-     * @todo Add post_content_excerpt config and output functionality
-     */
-    private static function insertPlayerExcerpt( $matches )
-    {
-        $options = Options::get( self::OPTNAME );
-        list( $files, $data ) = self::getfileData( $matches );
-        return NULL;
-    }
 
-    /**
-     * Insert player into post_content_more.
-	 *
-	 * @param array $matches from callback function
-	 * @return string
-     * @todo Add post_content_more config and output functionality
-     */
-    private static function insertPlayerMore( $matches )
-    {
-        $options = Options::get( self::OPTNAME );
-        list( $files, $data ) = self::getfileData( $matches );
-        return NULL;
-    }
-
-    /**
-     * Insert player into post_content_summary.
-	 *
-	 * @param array $matches from callback function
-	 * @return string
-     * @todo Add post_content_summary config and output functionality
-     */
-    private static function insertPlayerSummary( $matches )
-    {
-        $options = Options::get( self::OPTNAME );
-        list( $files, $data ) = self::getfileData( $matches );
-        return NULL;
-    }
 
 	/**
 	 * Extracts filenames, titles and artists from matched data.
@@ -702,38 +686,6 @@ class HBAudioPlayer extends Plugin
             $string .= $codekey{intval( substr( $ntexto, $i, 6 ), 2 )};
         }
         return $string;
-    }
-}
-
-/**
- * Formatting class.
- *
- * This class actually calls a filter function in the main plugin code.
- */
-class HBAudioPlayerFormat extends Format {
-    public function processContentOut( $content )
-    {
-        return Plugins::filter( 'processContent', $content, 'Out' );
-    }
-    
-    public function processContentAtom( $content )
-    {
-        return Plugins::filter( 'processContent', $content, 'Atom' );
-    }
-
-    public function processContentExcerpt( $content )
-    {
-        return Plugins::filter( 'processContent', $content, 'Excerpt' );
-    }
-
-    public function processContentMore( $content )
-    {
-        return Plugins::filter( 'processContent', $content, 'More' );
-    }
-
-    public function processContentSummary( $content )
-    {
-        return Plugins::filter( 'processContent', $content, 'Summary' );
     }
 }
 ?>
