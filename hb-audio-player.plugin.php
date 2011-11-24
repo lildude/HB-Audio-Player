@@ -571,14 +571,17 @@ class HBAudioPlayer extends Plugin
      */
     private static function getThemeColors()
     {
-		$themeFile = Themes::get_active()->theme_dir . 'style.css';
-		if ( is_file( $themeFile ) ) {
-            $theme_css = implode('', file( $themeFile ) );
-            preg_match_all( '/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', strtoupper( $theme_css ), $matches );
-            return array_unique($matches[1]);
-		} else {
-			return FALSE;
+		$colors = array();
+		$theme = Themes::get_active();
+		$themeFiles = array( $theme['theme_dir'] . 'style.css', $theme['theme_dir'] . 'css/style.css' );
+		foreach ( $themeFiles as $themeFile ) {
+			if ( is_file( $themeFile ) ) {
+				$theme_css = implode('', file( $themeFile ) );
+				preg_match_all( '/:[^:,;\{\}].*?#([abcdef1234567890]{3,6})/i', strtoupper( $theme_css ), $matches );
+				$colors = array_merge( $colors, array_unique( $matches[1] ) );
+			}
 		}
+		return array_unique( $colors );
     }
 
     /**
