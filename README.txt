@@ -1,4 +1,5 @@
 Plugin: HB Audio Player
+Version: 1.1r95
 URL: http://www.lildude.co.uk/projects/hb-audio-player
 Plugin Author: Colin Seymour - http://colinseymour.co.uk
 Credit goes to: Martin Laine for the original WP Audio Player plugin from which this plugin has been ported.
@@ -87,6 +88,7 @@ FAQ
 REVISION HISTORY
 ----------------
 
+1.1r84		- Switched to using the friendlier and more noticeable Session::notice() to notify users their options have been saved.
 1.1		- Resolved misbehaviour caused by incorrect assumption about location of theme stylesheet
 1.0     - Initial release
 
